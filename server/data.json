@@ -1,0 +1,36 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "belle",
+      "email": "belle@gmail.com",
+      "password": "$2a$10$YtnI3T3P3n382O9bVfuvH.maffOIPEsW.Zc9uEcFItnTr5moP4Qa.",
+      "account_type": "INDIVIDUAL",
+      "organization_id": null,
+      "created_at": "2026-08-31T17:00:51.018Z",
+      "updated_at": "2026-08-31T17:00:51.018Z"
+    }
+  ],
+  "organizations": [],
+  "tasks": [
+    {
+      "id": 1,
+      "owner_id": 1,
+      "assigned_to": null,
+      "organization_id": null,
+      "title": "SPADE meeting",
+      "description": "meeding daw sa voag",
+      "task_type": "EXTRACURRICULAR",
+      "due_date": "2026-08-31",
+      "priority": "MEDIUM",
+      "status": "PENDING",
+      "created_at": "2026-08-31T17:17:36.743Z",
+      "updated_at": "2026-08-31T17:17:36.743Z"
+    }
+  ],
+  "counters": {
+    "users": 2,
+    "organizations": 1,
+    "tasks": 2
+  }
+}
