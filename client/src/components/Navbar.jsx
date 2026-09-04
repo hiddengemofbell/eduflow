@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Sun, Moon, Plus, LogOut, Download } from 'lucide-react';
 
 export default function Navbar({ onOpenTaskModal }) {
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const [deferredPrompt, setDeferredPrompt] = React.useState(null);
 
@@ -68,11 +68,12 @@ export default function Navbar({ onOpenTaskModal }) {
 
           {/* Dark Mode Toggle */}
           <button
-            onClick={toggleDarkMode}
+            onClick={toggleTheme}
             className="p-2 rounded-xl text-[#2B1B3D] dark:text-[#FFAFCC] hover:bg-gray-100 dark:hover:bg-[#332352] transition flex items-center space-x-2"
-            aria-label="Toggle Theme"
+            aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+            aria-pressed={isDark}
           >
-            {darkMode ? (
+            {isDark ? (
               <>
                 <Sun className="w-4 h-4 text-[#FFAFCC]" />
                 <span className="text-xs font-bold hidden md:inline">Light Mode</span>
