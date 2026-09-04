@@ -18,6 +18,8 @@ Browser (React/Vite PWA)
 
 The browser never receives the database URL. All SQL runs on the server through parameterized queries. Supabase Row Level Security is enabled with no public policies because the application does not use the Supabase Data API; the server connects directly to Postgres.
 
+Production uses the dedicated `eduflow_app` login through Supabase's transaction pooler. The role can use the `public` schema and perform CRUD only on EduFlow's three tables and their identity sequences; it cannot create roles or databases and is not a superuser. It has `BYPASSRLS` because authorization is enforced by the Express API rather than Supabase Auth/RLS policies.
+
 ## Repository map
 
 ```text
