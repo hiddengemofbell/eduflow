@@ -4,6 +4,7 @@
   "description": "EduFlow Student Task & Activity Management System WorkSpace",
   "scripts": {
     "build": "cd client && npm run build",
+    "test": "node --test server/tests/*.test.js",
     "start": "cd server && node server.js",
     "start:server": "cd server && node server.js",
     "start:client": "cd client && npm run dev",
@@ -12,7 +13,7 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "express": "^4.19.2",
+    "express": "5.2.1",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3"
   }

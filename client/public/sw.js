@@ -1,10 +1,9 @@
-const CACHE_NAME = 'eduflow-app-v2';
+const CACHE_NAME = 'eduflow-app-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/logo.png',
-  '/logo-192.png',
-  '/logo-512.png',
+  '/favicon.svg',
   '/manifest.json'
 ];
 

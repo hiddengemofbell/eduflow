@@ -74,13 +74,17 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
     const isCompleted = t.status === 'COMPLETED';
     const isInProgress = t.status === 'IN_PROGRESS';
 
-    const handleCycleStatus = () => {
+    const handleCycleStatus = async () => {
       let nextStatus = 'PENDING';
       if (t.status === 'PENDING') nextStatus = 'IN_PROGRESS';
       else if (t.status === 'IN_PROGRESS') nextStatus = 'COMPLETED';
       else nextStatus = 'PENDING';
 
-      updateTask(t.id, { status: nextStatus });
+      try {
+        await updateTask(t.id, { status: nextStatus });
+      } catch (error) {
+        window.alert(error.message);
+      }
     };
 
     return (
@@ -278,9 +282,13 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => {
-                          if (confirm('Are you sure you want to delete this task?')) {
-                            deleteTask(t.id);
+                        onClick={async () => {
+                          if (window.confirm('Are you sure you want to delete this task?')) {
+                            try {
+                              await deleteTask(t.id);
+                            } catch (error) {
+                              window.alert(error.message);
+                            }
                           }
                         }}
                         title="Delete Task"

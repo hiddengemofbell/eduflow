@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import { parseLocalDate } from '../utils/dates';
 
 const TaskContext = createContext();
 
@@ -20,11 +21,9 @@ export const formatDueDateTime = (dueDate, dueTime) => {
 };
 
 export const TaskProvider = ({ children }) => {
-  const { token, isAuthenticated } = useAuth();
-  const [tasks, setTasks] = useState(() => {
-    const cached = localStorage.getItem('eduflow_offline_tasks');
-    return cached ? JSON.parse(cached) : [];
-  });
+  const { token, user, isAuthenticated } = useAuth();
+  const [tasks, setTasks] = useState([]);
+  const [cacheOwnerId, setCacheOwnerId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
@@ -41,8 +40,31 @@ export const TaskProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('eduflow_offline_tasks', JSON.stringify(tasks));
-  }, [tasks]);
+    if (!user?.id) {
+      setTasks([]);
+      setCacheOwnerId(null);
+      return;
+    }
+
+    const userId = String(user.id);
+    try {
+      const cached = localStorage.getItem(`eduflow_offline_tasks:${userId}`);
+      const parsed = cached ? JSON.parse(cached) : [];
+      setTasks(Array.isArray(parsed) ? parsed : []);
+    } catch (error) {
+      console.warn('Ignoring an invalid offline task cache.', error);
+      localStorage.removeItem(`eduflow_offline_tasks:${userId}`);
+      setTasks([]);
+    }
+    setCacheOwnerId(userId);
+  }, [user?.id]);
+
+  useEffect(() => {
+    const userId = user?.id ? String(user.id) : null;
+    if (userId && cacheOwnerId === userId) {
+      localStorage.setItem(`eduflow_offline_tasks:${userId}`, JSON.stringify(tasks));
+    }
+  }, [tasks, cacheOwnerId, user?.id]);
 
   const fetchTasks = useCallback(async () => {
     if (!token || !isAuthenticated) {
@@ -59,7 +81,7 @@ export const TaskProvider = ({ children }) => {
         setTasks(data.tasks);
         setIsOffline(false);
       } else {
-        const errData = await res.json();
+        const errData = await res.json().catch(() => ({}));
         setError(errData.message || 'Failed to fetch tasks.');
       }
     } catch (err) {
@@ -68,7 +90,7 @@ export const TaskProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [token, isAuthenticated]);
+  }, [token, isAuthenticated, user?.id]);
 
   useEffect(() => {
     fetchTasks();
@@ -88,7 +110,7 @@ export const TaskProvider = ({ children }) => {
         },
         body: JSON.stringify(taskData)
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(data.message || 'Failed to create task.');
       }
@@ -119,7 +141,7 @@ export const TaskProvider = ({ children }) => {
         body: JSON.stringify(updateData)
       });
       if (!res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         throw new Error(data.message || 'Failed to update task.');
       }
       await fetchTasks();
@@ -147,7 +169,7 @@ export const TaskProvider = ({ children }) => {
         }
       });
       if (!res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         throw new Error(data.message || 'Failed to delete task.');
       }
       await fetchTasks();
@@ -161,14 +183,14 @@ export const TaskProvider = ({ children }) => {
 
   const isDueToday = (dueDateStr) => {
     if (!dueDateStr) return false;
-    const due = new Date(dueDateStr);
+    const due = parseLocalDate(dueDateStr);
     const today = new Date();
     return due.toDateString() === today.toDateString();
   };
 
   const isOverdue = (dueDateStr, status) => {
     if (!dueDateStr || status === 'COMPLETED') return false;
-    const due = new Date(dueDateStr);
+    const due = parseLocalDate(dueDateStr);
     const now = new Date();
     return due < now && due.toDateString() !== now.toDateString();
   };

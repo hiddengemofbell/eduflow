@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { toLocalDateString } from '../utils/dates';
 
 export default function CustomDatePicker({ value, onChange, className = '' }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -72,7 +73,7 @@ export default function CustomDatePicker({ value, onChange, className = '' }) {
     }
   };
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = toLocalDateString();
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>

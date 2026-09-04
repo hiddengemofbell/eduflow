@@ -119,13 +119,15 @@ export default function OrganizationView({ onOpenTaskModal }) {
               <h3 className="text-base font-bold text-edu-dark dark:text-white">Join Organization</h3>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Enter the 6-character join code provided by your organization administrator.
+              Enter the 8-character join code provided by your organization administrator.
             </p>
             <form onSubmit={handleJoinOrg} className="space-y-3">
               <input
                 type="text"
                 required
-                placeholder="e.g. X7K9P2"
+                placeholder="e.g. A1B2C3D4"
+                minLength={8}
+                maxLength={8}
                 value={joinCodeInput}
                 onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
                 className="w-full px-3.5 py-2 text-xs font-mono uppercase border border-gray-200 dark:border-edu-darkBorder dark:bg-edu-darkBg dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-edu-accent"

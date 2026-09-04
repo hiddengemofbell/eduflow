@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { query, getOne, run } = require('../config/db');
+const { query, getOne, run, transaction } = require('../config/db');
 const { authenticateToken } = require('../middleware/auth');
 const crypto = require('crypto');
 
-const generateJoinCode = async () => {
+const generateJoinCode = async (getOneFromDatabase = getOne) => {
   for (let attempt = 0; attempt < 10; attempt += 1) {
     const code = crypto.randomBytes(5).toString('hex').slice(0, 8).toUpperCase();
-    const existing = await getOne('SELECT id FROM organizations WHERE join_code = ?', [code]);
+    const existing = await getOneFromDatabase('SELECT id FROM organizations WHERE join_code = ?', [code]);
     if (!existing) return code;
   }
   throw new Error('Unable to generate a unique organization join code.');
@@ -16,25 +16,33 @@ const generateJoinCode = async () => {
 // Create Organization
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name } = req.body || {};
     if (typeof name !== 'string' || !name.trim() || name.trim().length > 150) {
       return res.status(400).json({ message: 'Organization name is required.' });
     }
 
-    const joinCode = await generateJoinCode();
-    const result = await run(
-      'INSERT INTO organizations (name, join_code, created_by) VALUES (?, ?, ?)',
-      [name.trim(), joinCode, req.user.id]
-    );
+    const currentUser = await getOne('SELECT id, organization_id FROM users WHERE id = ?', [req.user.id]);
+    if (!currentUser) {
+      return res.status(401).json({ message: 'User account no longer exists.' });
+    }
+    if (currentUser.organization_id) {
+      return res.status(409).json({ message: 'Leave the current organization before creating another one.' });
+    }
 
-    const orgId = result.id;
-    // Update user to be ORG_ADMIN of this new org
-    await run(
-      'UPDATE users SET account_type = ?, organization_id = ? WHERE id = ?',
-      ['ORG_ADMIN', orgId, req.user.id]
-    );
+    const org = await transaction(async ({ getOne: txGetOne, run: txRun }) => {
+      const joinCode = await generateJoinCode(txGetOne);
+      const result = await txRun(
+        'INSERT INTO organizations (name, join_code, created_by) VALUES (?, ?, ?)',
+        [name.trim(), joinCode, req.user.id]
+      );
 
-    const org = await getOne('SELECT * FROM organizations WHERE id = ?', [orgId]);
+      await txRun(
+        'UPDATE users SET account_type = ?, organization_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        ['ORG_ADMIN', result.id, req.user.id]
+      );
+
+      return txGetOne('SELECT * FROM organizations WHERE id = ?', [result.id]);
+    });
 
     res.status(201).json({
       message: 'Organization created successfully.',
@@ -49,9 +57,17 @@ router.post('/', authenticateToken, async (req, res) => {
 // Join Organization via Join Code
 router.post('/join', authenticateToken, async (req, res) => {
   try {
-    const { join_code } = req.body;
-    if (!join_code) {
+    const { join_code } = req.body || {};
+    if (typeof join_code !== 'string' || !/^[A-F0-9]{8}$/.test(join_code.trim().toUpperCase())) {
       return res.status(400).json({ message: 'Join code is required.' });
+    }
+
+    const currentUser = await getOne('SELECT id, organization_id FROM users WHERE id = ?', [req.user.id]);
+    if (!currentUser) {
+      return res.status(401).json({ message: 'User account no longer exists.' });
+    }
+    if (currentUser.organization_id) {
+      return res.status(409).json({ message: 'You already belong to an organization.' });
     }
 
     const org = await getOne('SELECT * FROM organizations WHERE join_code = ?', [join_code.trim().toUpperCase()]);
@@ -59,11 +75,9 @@ router.post('/join', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'No organization found with this join code.' });
     }
 
-    const newAccountType = req.user.account_type === 'ORG_ADMIN' ? 'ORG_ADMIN' : 'ORG_MEMBER';
-
     await run(
-      'UPDATE users SET organization_id = ?, account_type = ? WHERE id = ?',
-      [org.id, newAccountType, req.user.id]
+      'UPDATE users SET organization_id = ?, account_type = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [org.id, 'ORG_MEMBER', req.user.id]
     );
 
     res.json({

@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { useTasks, formatDueDateTime } from '../context/TaskContext';
+import { parseLocalDate, toLocalDateString } from '../utils/dates';
 import { AlertCircle, Clock, Calendar, CheckCircle2, ArrowUpDown } from 'lucide-react';
 
 export default function UpcomingTasks({ onEditTask }) {
   const { tasks, updateTask } = useTasks();
   const [sortBy, setSortBy] = useState('date');
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = toLocalDateString();
   const now = new Date();
 
   const overdueTasks = tasks.filter(t => {
     if (!t.due_date || t.status === 'COMPLETED') return false;
-    const due = new Date(t.due_date);
+    const due = parseLocalDate(t.due_date);
     return due < now && !t.due_date.startsWith(todayStr);
   });
 
@@ -19,7 +20,7 @@ export default function UpcomingTasks({ onEditTask }) {
 
   const upcomingTasks = tasks.filter(t => {
     if (!t.due_date || t.status === 'COMPLETED') return false;
-    const due = new Date(t.due_date);
+    const due = parseLocalDate(t.due_date);
     return due > now && !t.due_date.startsWith(todayStr);
   });
 
@@ -30,8 +31,8 @@ export default function UpcomingTasks({ onEditTask }) {
       if (sortBy === 'priority') {
         return (priorityWeight[b.priority] || 0) - (priorityWeight[a.priority] || 0);
       }
-      const dateA = new Date(a.due_date);
-      const dateB = new Date(b.due_date);
+      const dateA = parseLocalDate(a.due_date);
+      const dateB = parseLocalDate(b.due_date);
       if (dateA - dateB !== 0) return dateA - dateB;
       if (a.due_time && b.due_time) return a.due_time.localeCompare(b.due_time);
       return 0;
@@ -49,7 +50,8 @@ export default function UpcomingTasks({ onEditTask }) {
     >
       <div className="flex items-center space-x-3">
         <button
-          onClick={() => updateTask(t.id, { status: t.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' })}
+          onClick={() => updateTask(t.id, { status: t.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' })
+            .catch((error) => window.alert(error.message))}
           className={`w-5 h-5 rounded-lg border flex items-center justify-center transition ${
             t.status === 'COMPLETED'
               ? 'bg-emerald-500 border-emerald-500 text-white'

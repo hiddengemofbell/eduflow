@@ -3,6 +3,7 @@ import { useTasks } from '../context/TaskContext';
 import { useAuth } from '../context/AuthContext';
 import CustomSelect from './CustomSelect';
 import CustomDatePicker from './CustomDatePicker';
+import { toLocalDateString } from '../utils/dates';
 import { X, UserCheck, Clock, Calendar, Tag, Flag, CheckCircle2, FileText, Sparkles } from 'lucide-react';
 
 export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultCategory = 'CURRICULAR' }) {
@@ -38,7 +39,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
       setDescription(taskToEdit.description || '');
       setTaskType(taskToEdit.task_type || defaultCategory);
       setDueDate(taskToEdit.due_date ? taskToEdit.due_date.split('T')[0] : '');
-      setDueTime(taskToEdit.due_time || '');
+      setDueTime(taskToEdit.due_time ? taskToEdit.due_time.slice(0, 5) : '');
       setPriority(taskToEdit.priority || 'MEDIUM');
       setStatus(taskToEdit.status || 'PENDING');
       setAssignedTo(taskToEdit.assigned_to || '');
@@ -46,7 +47,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
       setTitle('');
       setDescription('');
       setTaskType(defaultCategory);
-      setDueDate(new Date().toISOString().split('T')[0]);
+      setDueDate(toLocalDateString());
       setDueTime('');
       setPriority('MEDIUM');
       setStatus('PENDING');
@@ -70,7 +71,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
         due_time: dueTime ? dueTime.trim() : null,
         priority,
         status,
-        assigned_to: assignedTo ? parseInt(assignedTo) : null
+        assigned_to: assignedTo ? parseInt(assignedTo, 10) : null
       };
 
       if (taskToEdit) {

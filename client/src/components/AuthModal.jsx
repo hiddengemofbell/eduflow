@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { X, Lock, Mail, User, Shield, Users } from 'lucide-react';
 
@@ -15,6 +15,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode);
+      setError('');
+    }
+  }, [initialMode, isOpen]);
 
   if (!isOpen) return null;
 
@@ -103,6 +110,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 <input
                   type="text"
                   required
+                  maxLength={100}
                   placeholder="e.g., Belle Student"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -119,6 +127,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               <input
                 type="email"
                 required
+                maxLength={254}
                 placeholder="student@university.edu"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -134,6 +143,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               <input
                 type="password"
                 required
+                minLength={8}
+                maxLength={72}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -178,11 +189,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               {accountType === 'INDIVIDUAL' && (
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-1">
-                    Organization Join Code (Optional)
+                    Organization Join Code (Optional, 8 characters)
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g., ORG-8821"
+                    placeholder="e.g., A1B2C3D4"
+                    minLength={8}
+                    maxLength={8}
                     value={joinCode}
                     onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                     className="w-full px-3.5 py-2 text-xs border border-gray-200 dark:border-[#332352] dark:bg-[#120B1D] dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFC8DD]"
@@ -193,12 +206,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               {accountType === 'ORG_ADMIN' && (
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-1">
-                    Organization Name (Optional - will generate code)
+                    Organization Name (Optional — you can create it later)
                   </label>
                   <input
                     type="text"
                     placeholder="e.g., Student Council 2026"
                     value={orgName}
+                    maxLength={150}
                     onChange={(e) => setOrgName(e.target.value)}
                     className="w-full px-3.5 py-2 text-xs border border-gray-200 dark:border-[#332352] dark:bg-[#120B1D] dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFC8DD]"
                   />

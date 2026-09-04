@@ -3,6 +3,7 @@ import { useTasks } from '../context/TaskContext';
 import { useAuth } from '../context/AuthContext';
 import CustomSelect from './CustomSelect';
 import CustomDatePicker from './CustomDatePicker';
+import { toLocalDateString } from '../utils/dates';
 import { Quote, RefreshCw, CheckCircle2, Clock, AlertTriangle, Layers, Plus, Calendar as CalendarIcon, ArrowRight, WifiOff, Sparkles } from 'lucide-react';
 
 const STUDENT_QUOTES = [
@@ -22,7 +23,7 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [quickTitle, setQuickTitle] = useState('');
   const [quickType, setQuickType] = useState('CURRICULAR');
-  const [quickDueDate, setQuickDueDate] = useState(new Date().toISOString().split('T')[0]);
+  const [quickDueDate, setQuickDueDate] = useState(toLocalDateString);
   const [quickSubmitting, setQuickSubmitting] = useState(false);
 
   const nextQuote = () => {
@@ -280,7 +281,8 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
                 >
                   <div className="flex items-center space-x-3">
                     <button
-                      onClick={() => updateTask(t.id, { status: t.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' })}
+                      onClick={() => updateTask(t.id, { status: t.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' })
+                        .catch((error) => window.alert(error.message))}
                       className={`w-5 h-5 rounded-lg border flex items-center justify-center transition ${
                         t.status === 'COMPLETED'
                           ? 'bg-emerald-500 border-emerald-500 text-white'

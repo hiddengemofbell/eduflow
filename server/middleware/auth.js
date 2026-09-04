@@ -11,14 +11,15 @@ const authenticateToken = (req, res, next) => {
     return res.status(500).json({ message: 'Authentication is not configured on this server.' });
   }
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const tokenMatch = typeof authHeader === 'string' ? authHeader.match(/^Bearer\s+([^\s]+)$/i) : null;
+  const token = tokenMatch?.[1];
 
   if (!token) {
     return res.status(401).json({ message: 'Access token required. Authorization denied.' });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
+  jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }, (err, user) => {
+    if (err || !user || !/^\d+$/.test(String(user.id))) {
       return res.status(403).json({ message: 'Invalid or expired token.' });
     }
     req.user = user;

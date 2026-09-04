@@ -12,12 +12,22 @@ const parseTaskId = (value) => {
   return Number.isSafeInteger(id) && id > 0 ? id : null;
 };
 
-const validDate = (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
-const validTime = (value) => value === null || value === undefined || value === '' || (typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value));
+const validDate = (value) => {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
+};
+const validTime = (value) => value === null || value === undefined || value === '' || (typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,6})?)?$/.test(value));
+
+const parseOptionalUserId = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+  return parseTaskId(value);
+};
 
 const isOrganizationMember = async (userId, organizationId) => {
-  const member = await getOne('SELECT id FROM users WHERE id = ?', [Number(userId)]);
-  return Boolean(member && member.organization_id === organizationId);
+  const member = await getOne('SELECT id, organization_id FROM users WHERE id = ?', [Number(userId)]);
+  return Boolean(member && String(member.organization_id) === String(organizationId));
 };
 
 // Get Tasks for logged-in user
@@ -25,6 +35,9 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await getOne('SELECT organization_id, account_type FROM users WHERE id = ?', [userId]);
+    if (!user) {
+      return res.status(401).json({ message: 'User account no longer exists.' });
+    }
 
     let sql = `
       SELECT t.*, 
@@ -64,7 +77,7 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 
     const type = task_type || 'CURRICULAR';
-    if (typeof title !== 'string' || !title.trim() || title.trim().length > 200 || (description !== undefined && typeof description !== 'string') || !TASK_TYPES.includes(type) || !validDate(due_date) || !validTime(due_time) || !PRIORITIES.includes(priority || 'MEDIUM')) {
+    if (typeof title !== 'string' || !title.trim() || title.trim().length > 200 || (description !== undefined && (typeof description !== 'string' || description.length > 10000)) || !TASK_TYPES.includes(type) || !validDate(due_date) || !validTime(due_time) || !PRIORITIES.includes(priority || 'MEDIUM')) {
       return res.status(400).json({ message: 'One or more task fields are invalid.' });
     }
 
@@ -73,11 +86,14 @@ router.post('/', authenticateToken, async (req, res) => {
 
     if (type === 'ORG') {
       const user = await getOne('SELECT organization_id, account_type FROM users WHERE id = ?', [req.user.id]);
-      if (!user.organization_id || user.account_type !== 'ORG_ADMIN') {
+      if (!user || !user.organization_id || user.account_type !== 'ORG_ADMIN') {
         return res.status(403).json({ message: 'Only Organization Admins can create organization-assigned tasks.' });
       }
       targetOrgId = user.organization_id;
-      targetAssignedTo = assigned_to || null;
+      targetAssignedTo = parseOptionalUserId(assigned_to);
+      if (assigned_to !== null && assigned_to !== undefined && assigned_to !== '' && !targetAssignedTo) {
+        return res.status(400).json({ message: 'The selected assignee is invalid.' });
+      }
       if (targetAssignedTo && !(await isOrganizationMember(targetAssignedTo, targetOrgId))) {
         return res.status(400).json({ message: 'The assignee must be a member of this organization.' });
       }
@@ -124,6 +140,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 
     const user = await getOne('SELECT id, organization_id, account_type FROM users WHERE id = ?', [req.user.id]);
+    if (!user) {
+      return res.status(401).json({ message: 'User account no longer exists.' });
+    }
 
     const isOwner = task.owner_id === user.id;
     const isOrgAdmin = user.organization_id && user.organization_id === task.organization_id && user.account_type === 'ORG_ADMIN';
@@ -151,15 +170,19 @@ router.put('/:id', authenticateToken, async (req, res) => {
       const due_time = req.body.due_time !== undefined ? req.body.due_time : task.due_time;
       const priority = req.body.priority !== undefined ? req.body.priority : task.priority;
       const status = req.body.status !== undefined ? req.body.status : task.status;
-      const assigned_to = req.body.assigned_to !== undefined ? req.body.assigned_to : task.assigned_to;
+      const requestedAssignee = req.body.assigned_to !== undefined ? req.body.assigned_to : task.assigned_to;
+      const assigned_to = parseOptionalUserId(requestedAssignee);
 
-      if (typeof title !== 'string' || !title.trim() || title.trim().length > 200 || !TASK_TYPES.includes(task_type) || !PRIORITIES.includes(priority) || !STATUSES.includes(status) || !validDate(due_date) || !validTime(due_time)) {
+      if (typeof title !== 'string' || !title.trim() || title.trim().length > 200 || typeof description !== 'string' || description.length > 10000 || !TASK_TYPES.includes(task_type) || !PRIORITIES.includes(priority) || !STATUSES.includes(status) || !validDate(due_date) || !validTime(due_time) || (requestedAssignee !== null && requestedAssignee !== undefined && requestedAssignee !== '' && !assigned_to)) {
         return res.status(400).json({ message: 'One or more task fields are invalid.' });
       }
       // Changing a personal task into an organization task would require an
       // explicit organization association, so keep that state immutable here.
-      if (task.task_type === 'ORG' !== (task_type === 'ORG')) {
+      if ((task.task_type === 'ORG') !== (task_type === 'ORG')) {
         return res.status(400).json({ message: 'Task category cannot be changed to or from Organization Assigned.' });
+      }
+      if (!task.organization_id && assigned_to) {
+        return res.status(400).json({ message: 'Personal tasks cannot be assigned to another user.' });
       }
       if (task.organization_id && assigned_to && !(await isOrganizationMember(assigned_to, task.organization_id))) {
         return res.status(400).json({ message: 'The assignee must be a member of this organization.' });
@@ -169,7 +192,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
         `UPDATE tasks 
          SET title = ?, description = ?, task_type = ?, due_date = ?, due_time = ?, priority = ?, status = ?, assigned_to = ?, updated_at = CURRENT_TIMESTAMP 
          WHERE id = ?`,
-        [title.trim(), typeof description === 'string' ? description : '', task_type, due_date, due_time || null, priority, status, assigned_to || null, taskId]
+        [title.trim(), description, task_type, due_date, due_time || null, priority, status, assigned_to, taskId]
       );
     }
 
@@ -204,6 +227,9 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 
     const user = await getOne('SELECT id, organization_id, account_type FROM users WHERE id = ?', [req.user.id]);
+    if (!user) {
+      return res.status(401).json({ message: 'User account no longer exists.' });
+    }
     const isOwner = task.owner_id === user.id;
     const isOrgAdmin = user.organization_id && user.organization_id === task.organization_id && user.account_type === 'ORG_ADMIN';
 

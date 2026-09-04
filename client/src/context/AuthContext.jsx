@@ -80,6 +80,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('eduflow_token');
+    localStorage.removeItem('eduflow_offline_tasks');
     setToken(null);
     setUser(null);
   };
