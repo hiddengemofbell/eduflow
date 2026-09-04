@@ -24,3 +24,6 @@ Thumbs.db
 
 # Local development-only fallback data. Production must use a managed database.
 server/data.json
+
+# Supabase CLI connection metadata (may contain local connection details)
+supabase/.temp/
