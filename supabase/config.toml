@@ -1,0 +1,19 @@
+project_id = "eduflow"
+
+[auth]
+site_url = "https://eduflow-elledev.vercel.app"
+additional_redirect_urls = [
+  "https://eduflow-elledev.vercel.app/**",
+  "https://eduflow-lake-iota.vercel.app/**",
+  "https://*-elledev.vercel.app/**",
+  "http://localhost:5050/**",
+]
+
+[auth.email]
+enable_confirmations = true
+max_frequency = "1m0s"
+otp_length = 8
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true

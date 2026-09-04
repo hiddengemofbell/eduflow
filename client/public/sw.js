@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eduflow-app-v3';
+const CACHE_NAME = 'eduflow-app-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -40,6 +40,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Navigations must be network-first so authentication callbacks load the
+  // current app bundle and Supabase can consume the session in the URL.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match('/index.html').then((response) => response || caches.match('/')))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -66,11 +83,6 @@ self.addEventListener('fetch', (event) => {
         });
 
         return networkResponse;
-      }).catch(() => {
-        // Return offline fallback index.html for navigation requests
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html') || caches.match('/');
-        }
       });
     })
   );

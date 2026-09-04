@@ -7,7 +7,7 @@ EduFlow is a React/Vite student task manager with an Express API and a Supabase-
 ```text
 Browser (React/Vite PWA)
   ├─ / and static assets ───────────────> Vercel static output (client/dist)
-  └─ /api/* + Bearer JWT ──────────────> Vercel Function (api/index.js)
+└─ /api/* + Supabase access token ───> Vercel Function (api/index.js)
                                              └─ server/app.js
                                                   ├─ auth routes
                                                   ├─ organization routes
@@ -66,8 +66,8 @@ EduFlow/
 │  ├─ app.js                   Shared middleware, API mounts, DB-aware health, JSON errors
 │  ├─ server.js                Local server, static client hosting, and SPA fallback
 │  ├─ config/db.js             PostgreSQL pool, placeholder adapter, and transactions
-│  ├─ middleware/auth.js       HS256 Bearer-token validation
-│  ├─ routes/auth.js           Register, login, and current-user endpoints
+│  ├─ middleware/auth.js       Supabase access-token validation
+│  ├─ routes/auth.js           Current-user profile endpoint
 │  ├─ routes/organizations.js  Create/join organization and list members
 │  ├─ routes/tasks.js          Authorized task CRUD and validation
 │  ├─ tests/app.test.js        API health, auth guard, JSON error, and 404 smoke tests
@@ -99,23 +99,23 @@ Organization tasks must have an organization. Personal/curricular/extracurricula
 | Method | Path | Authentication | Purpose |
 |---|---|---|---|
 | `GET` | `/api/health` | No | Confirms both API and database availability |
-| `POST` | `/api/auth/register` | No | Creates an individual, organization member, or admin account |
-| `POST` | `/api/auth/login` | No | Verifies credentials and returns a seven-day JWT |
-| `GET` | `/api/auth/me` | Bearer JWT | Returns the current database-backed profile |
-| `POST` | `/api/organizations` | Bearer JWT | Atomically creates an organization and promotes its creator |
-| `POST` | `/api/organizations/join` | Bearer JWT | Joins an organization by code |
-| `GET` | `/api/organizations/members` | Bearer JWT | Lists members of the caller's organization |
-| `GET` | `/api/tasks` | Bearer JWT | Lists tasks visible to the caller |
-| `POST` | `/api/tasks` | Bearer JWT | Creates a personal or admin-owned organization task |
-| `PUT` | `/api/tasks/:id` | Bearer JWT | Updates an authorized task; assignees may change status only |
-| `DELETE` | `/api/tasks/:id` | Bearer JWT | Deletes a task as its owner or organization admin |
+| `GET` | `/api/auth/me` | Supabase access token | Returns the current database-backed profile |
+| `POST` | `/api/organizations` | Supabase access token | Atomically creates an organization and promotes its creator |
+| `POST` | `/api/organizations/join` | Supabase access token | Joins an organization by code |
+| `GET` | `/api/organizations/members` | Supabase access token | Lists members of the caller's organization |
+| `GET` | `/api/tasks` | Supabase access token | Lists tasks visible to the caller |
+| `POST` | `/api/tasks` | Supabase access token | Creates a personal or admin-owned organization task |
+| `PUT` | `/api/tasks/:id` | Supabase access token | Updates an authorized task; assignees may change status only |
+| `DELETE` | `/api/tasks/:id` | Supabase access token | Deletes a task as its owner or organization admin |
 
 ## Configuration
 
 Copy `.env.example` to `.env` for local development and provide:
 
 - `DATABASE_URL`: a complete, percent-encoded Supabase Postgres connection URL containing the password. For serverless traffic, use the transaction pooler URL (normally port `6543`).
-- `JWT_SECRET`: a cryptographically random value of at least 32 characters.
+- `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`: server-side Supabase Auth verification settings.
+- `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`: public browser settings for Supabase Auth.
+- `VITE_SITE_URL`: the production origin used after users confirm their registration email.
 - `CORS_ORIGIN`: optional comma-separated external origins. Leave blank for the normal same-origin Vercel deployment.
 
 Vercel variables are environment-scoped. Configure required values for Production and separately for Preview/Development when those deployments need a working API.

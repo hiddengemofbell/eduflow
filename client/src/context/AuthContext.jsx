@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { getSupabaseClient, supabase } from '../lib/supabase';
 
 const AuthContext = createContext();
 
@@ -7,82 +8,143 @@ const parseJsonResponse = async (res) => {
   if (!text) return {};
   try {
     return JSON.parse(text);
-  } catch (e) {
+  } catch (error) {
     return { message: 'Server connection error. Please try again.' };
   }
 };
 
+const getEmailRedirectUrl = () => {
+  const configuredSiteUrl = import.meta.env.VITE_SITE_URL?.trim();
+  return new URL('/', configuredSiteUrl || window.location.origin).toString();
+};
+
 export const AuthProvider = ({ children }) => {
+  const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('eduflow_token') || null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch current user if token exists
+  const token = session?.access_token || null;
+
   useEffect(() => {
-    const loadUser = async () => {
-      if (!token) {
+    localStorage.removeItem('eduflow_token');
+
+    if (!supabase) {
+      setLoading(false);
+      return undefined;
+    }
+
+    let active = true;
+
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!active) return;
+      if (error) console.error('Failed to restore Supabase session:', error.message);
+      setSession(data?.session || null);
+      if (!data?.session) setLoading(false);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      if (!nextSession) {
+        setUser(null);
         setLoading(false);
-        return;
       }
+    });
+
+    return () => {
+      active = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!token) return undefined;
+
+    const controller = new AbortController();
+
+    const loadUser = async () => {
+      setLoading(true);
       try {
         const res = await fetch('/api/auth/me', {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal
         });
-        if (res.ok) {
-          const data = await parseJsonResponse(res);
-          setUser(data.user);
-        } else {
-          // Invalid or expired token
-          logout();
+        const data = await parseJsonResponse(res);
+
+        if (!res.ok) {
+          throw new Error(data.message || 'Unable to load your EduFlow profile.');
         }
-      } catch (err) {
-        console.error('Failed to load user session:', err);
-        logout();
+        setUser(data.user);
+      } catch (error) {
+        if (error.name === 'AbortError') return;
+        console.error('Failed to load user session:', error.message);
+        setUser(null);
+        await supabase.auth.signOut({ scope: 'local' });
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
     loadUser();
+    return () => controller.abort();
   }, [token]);
 
   const login = async (email, password) => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+    const client = getSupabaseClient();
+    const { data, error } = await client.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password
     });
-    const data = await parseJsonResponse(res);
-    if (!res.ok) {
-      throw new Error(data.message || 'Login failed. Invalid credentials or server unavailable.');
-    }
-    localStorage.setItem('eduflow_token', data.token);
-    setToken(data.token);
-    setUser(data.user);
+
+    if (error) throw new Error(error.message || 'Login failed.');
     return data.user;
   };
 
   const register = async (formData) => {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+    const client = getSupabaseClient();
+    const normalizedJoinCode = formData.join_code?.trim().toUpperCase() || '';
+    const requestedType = normalizedJoinCode ? 'ORG_MEMBER' : formData.account_type;
+    const { data, error } = await client.auth.signUp({
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password,
+      options: {
+        emailRedirectTo: getEmailRedirectUrl(),
+        data: {
+          name: formData.name.trim(),
+          account_type: requestedType,
+          join_code: normalizedJoinCode,
+          org_name: formData.org_name?.trim() || ''
+        }
+      }
     });
-    const data = await parseJsonResponse(res);
-    if (!res.ok) {
-      throw new Error(data.message || 'Registration failed.');
-    }
-    localStorage.setItem('eduflow_token', data.token);
-    setToken(data.token);
-    setUser(data.user);
-    return data.user;
+
+    if (error) throw new Error(error.message || 'Registration failed.');
+
+    return {
+      user: data.user,
+      requiresEmailConfirmation: !data.session
+    };
   };
 
-  const logout = () => {
+  const logout = async () => {
     localStorage.removeItem('eduflow_token');
     localStorage.removeItem('eduflow_offline_tasks');
-    setToken(null);
     setUser(null);
+    setSession(null);
+
+    if (supabase) {
+      const { error } = await supabase.auth.signOut();
+      if (error) console.error('Supabase sign out failed:', error.message);
+    }
+  };
+
+  const refreshUser = async () => {
+    if (!token) return;
+    const res = await fetch('/api/auth/me', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(data.message || 'Failed to refresh your profile.');
+    setUser(data.user);
   };
 
   const joinOrganization = async (join_code) => {
@@ -90,22 +152,13 @@ export const AuthProvider = ({ children }) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({ join_code })
     });
     const data = await parseJsonResponse(res);
-    if (!res.ok) {
-      throw new Error(data.message || 'Failed to join organization.');
-    }
-    // Refresh user profile
-    const meRes = await fetch('/api/auth/me', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (meRes.ok) {
-      const meData = await parseJsonResponse(meRes);
-      setUser(meData.user);
-    }
+    if (!res.ok) throw new Error(data.message || 'Failed to join organization.');
+    await refreshUser();
     return data;
   };
 
@@ -114,40 +167,29 @@ export const AuthProvider = ({ children }) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({ name })
     });
     const data = await parseJsonResponse(res);
-    if (!res.ok) {
-      throw new Error(data.message || 'Failed to create organization.');
-    }
-    // Refresh user profile
-    const meRes = await fetch('/api/auth/me', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (meRes.ok) {
-      const meData = await parseJsonResponse(meRes);
-      setUser(meData.user);
-    }
+    if (!res.ok) throw new Error(data.message || 'Failed to create organization.');
+    await refreshUser();
     return data;
   };
 
-  return (
-    <AuthContext.Provider value={{
-      user,
-      token,
-      loading,
-      login,
-      register,
-      logout,
-      joinOrganization,
-      createOrganization,
-      isAuthenticated: !!user
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = useMemo(() => ({
+    user,
+    token,
+    loading,
+    login,
+    register,
+    logout,
+    joinOrganization,
+    createOrganization,
+    isAuthenticated: Boolean(user)
+  }), [loading, token, user]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

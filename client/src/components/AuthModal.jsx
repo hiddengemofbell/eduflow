@@ -15,11 +15,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [confirmationEmail, setConfirmationEmail] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       setMode(initialMode);
       setError('');
+      setConfirmationEmail('');
     }
   }, [initialMode, isOpen]);
 
@@ -35,7 +37,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         await login(email, password);
         onClose();
       } else {
-        await register({
+        const result = await register({
           name,
           email,
           password,
@@ -43,7 +45,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
           join_code: joinCode,
           org_name: orgName
         });
-        onClose();
+        if (result.requiresEmailConfirmation) {
+          setConfirmationEmail(email.trim());
+          setPassword('');
+        } else {
+          onClose();
+        }
       }
     } catch (err) {
       setError(err.message || 'An error occurred during authentication.');
@@ -76,7 +83,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
           {/* Mode Switcher */}
           <div className="flex bg-white/70 dark:bg-[#120B1D] p-1 rounded-2xl mt-4 border border-white/60 dark:border-[#332352]">
             <button
-              onClick={() => setMode('login')}
+              onClick={() => { setMode('login'); setError(''); setConfirmationEmail(''); }}
               className={`flex-1 py-2 font-black text-xs rounded-xl transition ${
                 mode === 'login' ? 'bg-[#2B1B3D] dark:bg-[#FFC8DD] text-white dark:text-[#2B1B3D] shadow' : 'text-gray-600 dark:text-gray-300'
               }`}
@@ -84,7 +91,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               Sign In
             </button>
             <button
-              onClick={() => setMode('register')}
+              onClick={() => { setMode('register'); setError(''); setConfirmationEmail(''); }}
               className={`flex-1 py-2 font-black text-xs rounded-xl transition ${
                 mode === 'register' ? 'bg-[#2B1B3D] dark:bg-[#FFC8DD] text-white dark:text-[#2B1B3D] shadow' : 'text-gray-600 dark:text-gray-300'
               }`}
@@ -96,6 +103,29 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+          {confirmationEmail && (
+            <div className="space-y-4 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-700">
+                <Mail className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-[#2B1B3D] dark:text-white">Check your email</h3>
+                <p className="mt-2 text-xs font-medium leading-5 text-gray-600 dark:text-gray-300">
+                  We sent a confirmation link to <strong>{confirmationEmail}</strong>. Open it to verify your address and return to EduFlow.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full rounded-2xl bg-[#FFC8DD] py-3 text-xs font-black text-[#2B1B3D] shadow transition hover:bg-[#FFAFCC]"
+              >
+                Got it
+              </button>
+            </div>
+          )}
+
+          {!confirmationEmail && (
+            <>
           {error && (
             <div className="p-3 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-xl">
               {error}
@@ -228,6 +258,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
           >
             {loading ? 'Please wait...' : mode === 'login' ? 'Sign In to EduFlow' : 'Create Account'}
           </button>
+            </>
+          )}
         </form>
       </div>
     </div>
