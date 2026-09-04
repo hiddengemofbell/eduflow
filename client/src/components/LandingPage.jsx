@@ -3,7 +3,7 @@ import { CheckCircle2, Shield, Users, Layers, ArrowRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 export default function LandingPage({ onOpenLogin, onOpenRegister }) {
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#120B1D] text-[#2B1B3D] dark:text-gray-100 font-sans flex flex-col transition-colors duration-300">
@@ -17,10 +17,10 @@ export default function LandingPage({ onOpenLogin, onOpenRegister }) {
 
           <div className="flex items-center space-x-3">
             <button
-              onClick={toggleDarkMode}
+              onClick={toggleTheme}
               className="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-[#332352] text-xs font-bold text-[#2B1B3D] dark:text-[#FFAFCC] hover:bg-gray-50 dark:hover:bg-[#332352] transition"
             >
-              {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+              {isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}
             </button>
 
             <button
