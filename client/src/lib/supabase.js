@@ -9,7 +9,8 @@ export const supabase = supabaseUrl && supabasePublishableKey
       auth: {
         detectSessionInUrl: true,
         persistSession: true,
-        autoRefreshToken: true
+        autoRefreshToken: true,
+        experimental: { passkey: true }
       }
     })
   : null;

@@ -4,6 +4,20 @@ const {
   isSupabaseConfigured
 } = require('../config/supabase');
 
+const getTokenAssuranceLevel = (accessToken) => {
+  try {
+    return JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64url').toString('utf8')).aal || null;
+  } catch (error) {
+    return null;
+  }
+};
+
+const requiresMfaVerification = (authUser, accessToken) => {
+  const hasVerifiedFactor = Array.isArray(authUser?.factors)
+    && authUser.factors.some((factor) => factor.status === 'verified');
+  return hasVerifiedFactor && getTokenAssuranceLevel(accessToken) !== 'aal2';
+};
+
 const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   const tokenMatch = typeof authHeader === 'string'
@@ -26,6 +40,13 @@ const authenticateToken = async (req, res, next) => {
 
     if (error || !authUser) {
       return res.status(403).json({ message: 'Invalid or expired access token.' });
+    }
+
+    if (requiresMfaVerification(authUser, accessToken)) {
+      return res.status(403).json({
+        code: 'MFA_REQUIRED',
+        message: 'Complete two-factor authentication to continue.'
+      });
     }
 
     if (!authUser.email_confirmed_at) {
@@ -55,4 +76,4 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-module.exports = { authenticateToken };
+module.exports = { authenticateToken, getTokenAssuranceLevel, requiresMfaVerification };

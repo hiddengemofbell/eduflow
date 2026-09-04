@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { useAuth } from '../context/AuthContext';
-import { X, Lock, Mail, User, Shield, Users } from 'lucide-react';
+import { X, KeyRound, Lock, Mail, User, Shield, Users } from 'lucide-react';
 
 export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
-  const { login, register } = useAuth();
+  const { login, register, requestPasswordReset, signInWithPasskey } = useAuth();
+  const captchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY?.trim();
+  const captchaRef = useRef(null);
 
   const [mode, setMode] = useState(initialMode);
   const [name, setName] = useState('');
@@ -16,12 +19,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [confirmationEmail, setConfirmationEmail] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       setMode(initialMode);
       setError('');
       setConfirmationEmail('');
+      setResetEmail('');
+      setCaptchaToken('');
     }
   }, [initialMode, isOpen]);
 
@@ -33,8 +40,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     setLoading(true);
 
     try {
-      if (mode === 'login') {
-        await login(email, password);
+      if (captchaSiteKey && !captchaToken) {
+        throw new Error('Complete the CAPTCHA challenge before continuing.');
+      } else if (mode === 'forgot') {
+        await requestPasswordReset(email, captchaToken);
+        setResetEmail(email.trim());
+      } else if (mode === 'login') {
+        await login(email, password, captchaToken);
         onClose();
       } else {
         const result = await register({
@@ -43,7 +55,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
           password,
           account_type: accountType,
           join_code: joinCode,
-          org_name: orgName
+          org_name: orgName,
+          captchaToken
         });
         if (result.requiresEmailConfirmation) {
           setConfirmationEmail(email.trim());
@@ -55,9 +68,41 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     } catch (err) {
       setError(err.message || 'An error occurred during authentication.');
     } finally {
+      captchaRef.current?.resetCaptcha();
+      setCaptchaToken('');
       setLoading(false);
     }
   };
+
+  const handlePasskeySignIn = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      if (captchaSiteKey && !captchaToken) {
+        throw new Error('Complete the CAPTCHA challenge before using a passkey.');
+      }
+      await signInWithPasskey(captchaToken);
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Passkey sign-in failed.');
+    } finally {
+      captchaRef.current?.resetCaptcha();
+      setCaptchaToken('');
+      setLoading(false);
+    }
+  };
+
+  const title = mode === 'login'
+    ? 'Welcome Back!'
+    : mode === 'register'
+      ? 'Create Your Account'
+      : 'Reset Your Password';
+
+  const subtitle = mode === 'login'
+    ? 'Sign in to access your student task dashboard'
+    : mode === 'register'
+      ? 'Join EduFlow to organize all your responsibilities'
+      : 'We will email you a secure password reset link';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1B3D]/70 dark:bg-black/80 backdrop-blur-md p-4 animate-fade-in">
@@ -74,16 +119,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
           <img src="/logo.png" alt="EduFlow Logo" className="w-14 h-14 object-contain mx-auto mb-2 drop-shadow" />
 
           <h2 className="text-2xl font-black text-[#2B1B3D] dark:text-white">
-            {mode === 'login' ? 'Welcome Back!' : 'Create Your Account'}
+            {title}
           </h2>
           <p className="text-xs font-bold text-gray-600 dark:text-[#FFC8DD] mt-1">
-            {mode === 'login' ? 'Sign in to access your student task dashboard' : 'Join EduFlow to organize all your responsibilities'}
+            {subtitle}
           </p>
 
           {/* Mode Switcher */}
           <div className="flex bg-white/70 dark:bg-[#120B1D] p-1 rounded-2xl mt-4 border border-white/60 dark:border-[#332352]">
             <button
-              onClick={() => { setMode('login'); setError(''); setConfirmationEmail(''); }}
+              onClick={() => { setMode('login'); setError(''); setConfirmationEmail(''); setResetEmail(''); }}
               className={`flex-1 py-2 font-black text-xs rounded-xl transition ${
                 mode === 'login' ? 'bg-[#2B1B3D] dark:bg-[#FFC8DD] text-white dark:text-[#2B1B3D] shadow' : 'text-gray-600 dark:text-gray-300'
               }`}
@@ -91,7 +136,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               Sign In
             </button>
             <button
-              onClick={() => { setMode('register'); setError(''); setConfirmationEmail(''); }}
+              onClick={() => { setMode('register'); setError(''); setConfirmationEmail(''); setResetEmail(''); }}
               className={`flex-1 py-2 font-black text-xs rounded-xl transition ${
                 mode === 'register' ? 'bg-[#2B1B3D] dark:bg-[#FFC8DD] text-white dark:text-[#2B1B3D] shadow' : 'text-gray-600 dark:text-gray-300'
               }`}
@@ -124,7 +169,28 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
             </div>
           )}
 
-          {!confirmationEmail && (
+          {resetEmail && (
+            <div className="space-y-4 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                <Mail className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-[#2B1B3D] dark:text-white">Check your email</h3>
+                <p className="mt-2 text-xs font-medium leading-5 text-gray-600 dark:text-gray-300">
+                  If an account exists for <strong>{resetEmail}</strong>, a secure reset link has been sent.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setMode('login'); setResetEmail(''); }}
+                className="w-full rounded-2xl bg-[#FFC8DD] py-3 text-xs font-black text-[#2B1B3D] shadow transition hover:bg-[#FFAFCC]"
+              >
+                Back to sign in
+              </button>
+            </div>
+          )}
+
+          {!confirmationEmail && !resetEmail && (
             <>
           {error && (
             <div className="p-3 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-xl">
@@ -166,7 +232,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
             </div>
           </div>
 
-          <div>
+          {mode !== 'forgot' && <div>
             <label className="block text-xs font-black uppercase tracking-wider text-[#2B1B3D] dark:text-gray-300 mb-1">Password</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
@@ -181,7 +247,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 className="w-full pl-9 pr-4 py-2.5 text-xs border border-gray-200 dark:border-[#332352] dark:bg-[#120B1D] dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFC8DD]"
               />
             </div>
-          </div>
+            {mode === 'login' && (
+              <button
+                type="button"
+                onClick={() => { setMode('forgot'); setError(''); setPassword(''); setCaptchaToken(''); }}
+                className="mt-2 text-[11px] font-bold text-[#6D4C7D] dark:text-[#FFC8DD] hover:underline"
+              >
+                Forgot password?
+              </button>
+            )}
+          </div>}
 
           {mode === 'register' && (
             <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-[#332352]">
@@ -251,13 +326,51 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
             </div>
           )}
 
+          {captchaSiteKey && (
+            <div className="flex justify-center overflow-hidden rounded-xl">
+              <HCaptcha
+                ref={captchaRef}
+                sitekey={captchaSiteKey}
+                theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+                onVerify={setCaptchaToken}
+                onExpire={() => setCaptchaToken('')}
+                onError={() => setCaptchaToken('')}
+              />
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
             className="w-full py-3 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-black text-xs rounded-2xl shadow transition transform active:scale-95 mt-2"
           >
-            {loading ? 'Please wait...' : mode === 'login' ? 'Sign In to EduFlow' : 'Create Account'}
+            {loading
+              ? 'Please wait...'
+              : mode === 'login'
+                ? 'Sign In to EduFlow'
+                : mode === 'register'
+                  ? 'Create Account'
+                  : 'Send Reset Link'}
           </button>
+
+          {mode === 'login' && (
+            <>
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <span className="h-px flex-1 bg-gray-200 dark:bg-[#332352]" />
+                or
+                <span className="h-px flex-1 bg-gray-200 dark:bg-[#332352]" />
+              </div>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={handlePasskeySignIn}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#2B1B3D] dark:border-[#FFC8DD] py-3 text-xs font-black text-[#2B1B3D] dark:text-[#FFC8DD] transition hover:bg-[#2B1B3D]/5 disabled:opacity-50"
+              >
+                <KeyRound className="h-4 w-4" />
+                Sign in with a passkey
+              </button>
+            </>
+          )}
             </>
           )}
         </form>

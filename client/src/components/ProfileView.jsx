@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTasks } from '../context/TaskContext';
 import { User, Layers } from 'lucide-react';
+import SecuritySettings from './SecuritySettings';
 
 export default function ProfileView() {
   const { user } = useAuth();
@@ -84,6 +85,8 @@ export default function ProfileView() {
           </div>
         </div>
       </div>
+
+      <SecuritySettings />
     </div>
   );
 }

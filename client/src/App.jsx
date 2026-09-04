@@ -11,9 +11,11 @@ import UpcomingTasks from './components/UpcomingTasks';
 import OrganizationView from './components/OrganizationView';
 import ProfileView from './components/ProfileView';
 import TaskModal from './components/TaskModal';
+import MfaChallenge from './components/MfaChallenge';
+import PasswordRecoveryModal from './components/PasswordRecoveryModal';
 
 export default function App() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, mfaRequired, passwordRecovery } = useAuth();
 
   // Navigation State
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -26,6 +28,14 @@ export default function App() {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState(null);
   const [taskDefaultCategory, setTaskDefaultCategory] = useState('CURRICULAR');
+
+  if (passwordRecovery) {
+    return <PasswordRecoveryModal />;
+  }
+
+  if (mfaRequired) {
+    return <MfaChallenge />;
+  }
 
   if (loading) {
     return (

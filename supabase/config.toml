@@ -1,8 +1,9 @@
 project_id = "eduflow"
 
 [auth]
-site_url = "https://eduflow-elledev.vercel.app"
+site_url = "https://eduflow-student-app.vercel.app"
 additional_redirect_urls = [
+  "https://eduflow-student-app.vercel.app/**",
   "https://eduflow-elledev.vercel.app/**",
   "https://eduflow-lake-iota.vercel.app/**",
   "https://*-elledev.vercel.app/**",
@@ -17,3 +18,11 @@ otp_length = 8
 [auth.mfa.totp]
 enroll_enabled = true
 verify_enabled = true
+
+[auth.passkey]
+enabled = true
+
+[auth.webauthn]
+rp_display_name = "EduFlow"
+rp_id = "eduflow-student-app.vercel.app"
+rp_origins = ["https://eduflow-student-app.vercel.app"]

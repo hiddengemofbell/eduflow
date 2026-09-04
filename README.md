@@ -116,7 +116,10 @@ Copy `.env.example` to `.env` for local development and provide:
 - `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`: server-side Supabase Auth verification settings.
 - `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`: public browser settings for Supabase Auth.
 - `VITE_SITE_URL`: the production origin used after users confirm their registration email.
+- `VITE_HCAPTCHA_SITE_KEY`: the public hCaptcha site key shown on registration and sign-in. Configure its matching secret under Supabase Auth > Bot and Abuse Protection; never expose the secret to Vite.
 - `CORS_ORIGIN`: optional comma-separated external origins. Leave blank for the normal same-origin Vercel deployment.
+
+EduFlow supports password recovery, optional TOTP two-factor authentication, and passkeys. Passkeys are bound to `eduflow-student-app.vercel.app`; changing the relying-party ID invalidates previously registered passkeys. Push `supabase/config.toml` to enable the hosted TOTP/passkey configuration after reviewing the production domain.
 
 Vercel variables are environment-scoped. Configure required values for Production and separately for Preview/Development when those deployments need a working API.
 
