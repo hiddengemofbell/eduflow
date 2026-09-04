@@ -9,7 +9,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [accountType, setAccountType] = useState('STUDENT');
+  const [accountType, setAccountType] = useState('INDIVIDUAL');
   const [joinCode, setJoinCode] = useState('');
   const [orgName, setOrgName] = useState('');
 
@@ -148,9 +148,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => setAccountType('STUDENT')}
+                  onClick={() => setAccountType('INDIVIDUAL')}
                   className={`p-3 rounded-2xl border text-left transition ${
-                    accountType === 'STUDENT'
+                    accountType === 'INDIVIDUAL'
                       ? 'border-[#2B1B3D] dark:border-[#FFC8DD] bg-[#FFC8DD]/20 dark:bg-[#382550]'
                       : 'border-gray-200 dark:border-[#332352] bg-white dark:bg-[#120B1D]'
                   }`}
@@ -175,7 +175,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 </button>
               </div>
 
-              {accountType === 'STUDENT' && (
+              {accountType === 'INDIVIDUAL' && (
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-1">
                     Organization Join Code (Optional)
