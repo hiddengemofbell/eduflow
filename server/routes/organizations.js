@@ -2,19 +2,29 @@ const express = require('express');
 const router = express.Router();
 const { query, getOne, run } = require('../config/db');
 const { authenticateToken } = require('../middleware/auth');
+const crypto = require('crypto');
+
+const generateJoinCode = async () => {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const code = crypto.randomBytes(5).toString('hex').slice(0, 8).toUpperCase();
+    const existing = await getOne('SELECT id FROM organizations WHERE join_code = ?', [code]);
+    if (!existing) return code;
+  }
+  throw new Error('Unable to generate a unique organization join code.');
+};
 
 // Create Organization
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { name } = req.body;
-    if (!name) {
+    if (typeof name !== 'string' || !name.trim() || name.trim().length > 150) {
       return res.status(400).json({ message: 'Organization name is required.' });
     }
 
-    const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const joinCode = await generateJoinCode();
     const result = await run(
       'INSERT INTO organizations (name, join_code, created_by) VALUES (?, ?, ?)',
-      [name, joinCode, req.user.id]
+      [name.trim(), joinCode, req.user.id]
     );
 
     const orgId = result.id;

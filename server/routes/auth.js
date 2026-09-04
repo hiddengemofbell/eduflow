@@ -3,10 +3,14 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { getOne, run } = require('../config/db');
-const { authenticateToken, JWT_SECRET } = require('../middleware/auth');
+const { authenticateToken, JWT_SECRET, hasJwtSecret } = require('../middleware/auth');
+const crypto = require('crypto');
 
 // Helper to generate JWT
 const generateToken = (user) => {
+  if (!hasJwtSecret()) {
+    throw new Error('JWT_SECRET must be set to a value of at least 32 characters.');
+  }
   return jwt.sign(
     {
       id: user.id,
@@ -20,6 +24,17 @@ const generateToken = (user) => {
   );
 };
 
+const generateJoinCode = async () => {
+  // Six random base-36 characters have only ~2.2B combinations; retry on the
+  // small chance of a collision rather than relying on Math.random().
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const code = crypto.randomBytes(5).toString('hex').slice(0, 8).toUpperCase();
+    const existing = await getOne('SELECT id FROM organizations WHERE join_code = ?', [code]);
+    if (!existing) return code;
+  }
+  throw new Error('Unable to generate a unique organization join code.');
+};
+
 // Register
 router.post('/register', async (req, res) => {
   try {
@@ -28,13 +43,17 @@ router.post('/register', async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email, and password are required.' });
     }
+    if (typeof name !== 'string' || name.trim().length > 100 || typeof email !== 'string' || email.trim().length > 254 || typeof password !== 'string' || password.length < 8) {
+      return res.status(400).json({ message: 'Use a name and email of valid length, and a password of at least 8 characters.' });
+    }
+    const normalizedEmail = email.trim().toLowerCase();
 
     const type = account_type || 'INDIVIDUAL';
     if (!['INDIVIDUAL', 'ORG_ADMIN', 'ORG_MEMBER'].includes(type)) {
       return res.status(400).json({ message: 'Invalid account type.' });
     }
 
-    const existingUser = await getOne('SELECT id FROM users WHERE email = ?', [email]);
+    const existingUser = await getOne('SELECT id FROM users WHERE email = ?', [normalizedEmail]);
     if (existingUser) {
       return res.status(400).json({ message: 'Email address is already registered.' });
     }
@@ -56,22 +75,25 @@ router.post('/register', async (req, res) => {
     // Insert user first
     const result = await run(
       `INSERT INTO users (name, email, password, account_type, organization_id) VALUES (?, ?, ?, ?, ?)`,
-      [name, email, hashedPassword, type, organizationId]
+      [name.trim(), normalizedEmail, hashedPassword, type, organizationId]
     );
 
     const userId = result.id;
 
     // If ORG_ADMIN and org_name provided, create organization automatically
     if (type === 'ORG_ADMIN' && org_name) {
-      const generatedCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      if (typeof org_name !== 'string' || !org_name.trim() || org_name.trim().length > 150) {
+        return res.status(400).json({ message: 'Organization name must be between 1 and 150 characters.' });
+      }
+      const generatedCode = await generateJoinCode();
       const orgResult = await run(
         `INSERT INTO organizations (name, join_code, created_by) VALUES (?, ?, ?)`,
-        [org_name, generatedCode, userId]
+        [org_name.trim(), generatedCode, userId]
       );
       organizationId = orgResult.id;
       // Update user with organization_id
       await run('UPDATE users SET organization_id = ? WHERE id = ?', [organizationId, userId]);
-      createdOrg = { id: organizationId, name: org_name, join_code: generatedCode };
+      createdOrg = { id: organizationId, name: org_name.trim(), join_code: generatedCode };
     }
 
     const newUser = await getOne(
@@ -100,11 +122,11 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
       return res.status(400).json({ message: 'Email and password are required.' });
     }
 
-    const user = await getOne('SELECT * FROM users WHERE email = ?', [email]);
+    const user = await getOne('SELECT * FROM users WHERE email = ?', [email.trim().toLowerCase()]);
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password.' });
     }

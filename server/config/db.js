@@ -118,7 +118,7 @@ const getOne = async (sql, params = []) => {
   }
 
   if (lowerSql.includes('from tasks t') && lowerSql.includes('t.id = ?')) {
-    const t = data.tasks.find(tk => tk.id === params[0]);
+    const t = data.tasks.find(tk => tk.id === Number(params[0]));
     if (!t) return null;
     const owner = data.users.find(u => u.id === t.owner_id);
     const assignee = data.users.find(u => u.id === t.assigned_to);
@@ -130,7 +130,7 @@ const getOne = async (sql, params = []) => {
   }
 
   if (lowerSql.includes('from tasks where id = ?')) {
-    return data.tasks.find(tk => tk.id === params[0]) || null;
+    return data.tasks.find(tk => tk.id === Number(params[0])) || null;
   }
 
   return null;

@@ -25,6 +25,7 @@ export default function App() {
   // Task Modal State
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState(null);
+  const [taskDefaultCategory, setTaskDefaultCategory] = useState('CURRICULAR');
 
   if (loading) {
     return (
@@ -55,8 +56,9 @@ export default function App() {
   }
 
   // Authenticated Student App Shell
-  const handleOpenNewTask = () => {
+  const handleOpenNewTask = (defaultCategory = 'CURRICULAR') => {
     setTaskToEdit(null);
+    setTaskDefaultCategory(defaultCategory);
     setTaskModalOpen(true);
   };
 
@@ -84,7 +86,7 @@ export default function App() {
       case 'account-profile':
         return <ProfileView />;
       case 'account-org':
-        return <OrganizationView onOpenTaskModal={handleOpenNewTask} />;
+        return <OrganizationView onOpenTaskModal={() => handleOpenNewTask('ORG')} />;
       default:
         return <Dashboard onOpenTaskModal={handleOpenNewTask} setActiveTab={setActiveTab} />;
     }
@@ -105,6 +107,7 @@ export default function App() {
         isOpen={taskModalOpen}
         onClose={() => setTaskModalOpen(false)}
         taskToEdit={taskToEdit}
+        defaultCategory={taskDefaultCategory}
       />
     </div>
   );

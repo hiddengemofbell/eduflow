@@ -3,6 +3,23 @@ const router = express.Router();
 const { query, getOne, run } = require('../config/db');
 const { authenticateToken } = require('../middleware/auth');
 
+const TASK_TYPES = ['CURRICULAR', 'EXTRACURRICULAR', 'ORG'];
+const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH'];
+const STATUSES = ['PENDING', 'IN_PROGRESS', 'COMPLETED'];
+
+const parseTaskId = (value) => {
+  const id = Number(value);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+};
+
+const validDate = (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
+const validTime = (value) => value === null || value === undefined || value === '' || (typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value));
+
+const isOrganizationMember = async (userId, organizationId) => {
+  const member = await getOne('SELECT id FROM users WHERE id = ?', [Number(userId)]);
+  return Boolean(member && member.organization_id === organizationId);
+};
+
 // Get Tasks for logged-in user
 router.get('/', authenticateToken, async (req, res) => {
   try {
@@ -47,8 +64,8 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 
     const type = task_type || 'CURRICULAR';
-    if (!['CURRICULAR', 'EXTRACURRICULAR', 'ORG'].includes(type)) {
-      return res.status(400).json({ message: 'Invalid task type.' });
+    if (typeof title !== 'string' || !title.trim() || title.trim().length > 200 || (description !== undefined && typeof description !== 'string') || !TASK_TYPES.includes(type) || !validDate(due_date) || !validTime(due_time) || !PRIORITIES.includes(priority || 'MEDIUM')) {
+      return res.status(400).json({ message: 'One or more task fields are invalid.' });
     }
 
     let targetOrgId = null;
@@ -61,6 +78,9 @@ router.post('/', authenticateToken, async (req, res) => {
       }
       targetOrgId = user.organization_id;
       targetAssignedTo = assigned_to || null;
+      if (targetAssignedTo && !(await isOrganizationMember(targetAssignedTo, targetOrgId))) {
+        return res.status(400).json({ message: 'The assignee must be a member of this organization.' });
+      }
     }
 
     const taskPriority = priority || 'MEDIUM';
@@ -70,7 +90,7 @@ router.post('/', authenticateToken, async (req, res) => {
     const result = await run(
       `INSERT INTO tasks (owner_id, assigned_to, organization_id, title, description, task_type, due_date, due_time, priority, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [req.user.id, targetAssignedTo, targetOrgId, title, description || '', type, due_date, optionalTime, taskPriority, initialStatus]
+      [req.user.id, targetAssignedTo, targetOrgId, title.trim(), description || '', type, due_date, optionalTime, taskPriority, initialStatus]
     );
 
     const createdTask = await getOne(
@@ -95,7 +115,8 @@ router.post('/', authenticateToken, async (req, res) => {
 // Update Task
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
-    const taskId = req.params.id;
+    const taskId = parseTaskId(req.params.id);
+    if (!taskId) return res.status(400).json({ message: 'Invalid task ID.' });
     const task = await getOne('SELECT * FROM tasks WHERE id = ?', [taskId]);
 
     if (!task) {
@@ -132,11 +153,23 @@ router.put('/:id', authenticateToken, async (req, res) => {
       const status = req.body.status !== undefined ? req.body.status : task.status;
       const assigned_to = req.body.assigned_to !== undefined ? req.body.assigned_to : task.assigned_to;
 
+      if (typeof title !== 'string' || !title.trim() || title.trim().length > 200 || !TASK_TYPES.includes(task_type) || !PRIORITIES.includes(priority) || !STATUSES.includes(status) || !validDate(due_date) || !validTime(due_time)) {
+        return res.status(400).json({ message: 'One or more task fields are invalid.' });
+      }
+      // Changing a personal task into an organization task would require an
+      // explicit organization association, so keep that state immutable here.
+      if (task.task_type === 'ORG' !== (task_type === 'ORG')) {
+        return res.status(400).json({ message: 'Task category cannot be changed to or from Organization Assigned.' });
+      }
+      if (task.organization_id && assigned_to && !(await isOrganizationMember(assigned_to, task.organization_id))) {
+        return res.status(400).json({ message: 'The assignee must be a member of this organization.' });
+      }
+
       await run(
         `UPDATE tasks 
          SET title = ?, description = ?, task_type = ?, due_date = ?, due_time = ?, priority = ?, status = ?, assigned_to = ?, updated_at = CURRENT_TIMESTAMP 
          WHERE id = ?`,
-        [title, description, task_type, due_date, due_time, priority, status, assigned_to, taskId]
+        [title.trim(), typeof description === 'string' ? description : '', task_type, due_date, due_time || null, priority, status, assigned_to || null, taskId]
       );
     }
 
@@ -162,7 +195,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
 // Delete Task
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
-    const taskId = req.params.id;
+    const taskId = parseTaskId(req.params.id);
+    if (!taskId) return res.status(400).json({ message: 'Invalid task ID.' });
     const task = await getOne('SELECT * FROM tasks WHERE id = ?', [taskId]);
 
     if (!task) {

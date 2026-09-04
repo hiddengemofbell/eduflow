@@ -75,23 +75,8 @@ export const TaskProvider = ({ children }) => {
   }, [fetchTasks]);
 
   const addTask = async (taskData) => {
-    const optimisticTask = {
-      id: Date.now(),
-      owner_id: 1,
-      title: taskData.title,
-      description: taskData.description || '',
-      task_type: taskData.task_type || 'CURRICULAR',
-      due_date: taskData.due_date,
-      due_time: taskData.due_time || null,
-      priority: taskData.priority || 'MEDIUM',
-      status: taskData.status || 'PENDING',
-      assigned_to: taskData.assigned_to || null,
-      created_at: new Date().toISOString()
-    };
-
     if (isOffline) {
-      setTasks(prev => [optimisticTask, ...prev]);
-      return optimisticTask;
+      throw new Error('You are offline. Connect to the internet before creating a task.');
     }
 
     try {
@@ -110,16 +95,19 @@ export const TaskProvider = ({ children }) => {
       await fetchTasks();
       return data.task;
     } catch (err) {
-      setTasks(prev => [optimisticTask, ...prev]);
-      setIsOffline(true);
-      return optimisticTask;
+      if (!navigator.onLine) setIsOffline(true);
+      throw err;
     }
   };
 
   const updateTask = async (id, updateData) => {
+    const previousTasks = tasks;
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updateData, updated_at: new Date().toISOString() } : t));
 
-    if (isOffline) return;
+    if (isOffline) {
+      setTasks(previousTasks);
+      throw new Error('You are offline. Connect to the internet before updating a task.');
+    }
 
     try {
       const res = await fetch(`/api/tasks/${id}`, {
@@ -136,15 +124,20 @@ export const TaskProvider = ({ children }) => {
       }
       await fetchTasks();
     } catch (err) {
-      console.warn('Updated offline:', err);
-      setIsOffline(true);
+      setTasks(previousTasks);
+      if (!navigator.onLine) setIsOffline(true);
+      throw err;
     }
   };
 
   const deleteTask = async (id) => {
+    const previousTasks = tasks;
     setTasks(prev => prev.filter(t => t.id !== id));
 
-    if (isOffline) return true;
+    if (isOffline) {
+      setTasks(previousTasks);
+      throw new Error('You are offline. Connect to the internet before deleting a task.');
+    }
 
     try {
       const res = await fetch(`/api/tasks/${id}`, {
@@ -160,9 +153,9 @@ export const TaskProvider = ({ children }) => {
       await fetchTasks();
       return true;
     } catch (err) {
-      console.warn('Deleted offline:', err);
-      setIsOffline(true);
-      return true;
+      setTasks(previousTasks);
+      if (!navigator.onLine) setIsOffline(true);
+      throw err;
     }
   };
 
