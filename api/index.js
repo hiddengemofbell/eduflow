@@ -12,8 +12,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Initialize JSON database
-initDb();
+// Verify the database connection during cold starts. Individual requests still
+// surface a clear error if the deployment has not been configured yet.
+initDb().catch((error) => console.error('Database initialization failed:', error.message));
 
 // Mount API Endpoints
 app.use('/api/auth', authRoutes);
