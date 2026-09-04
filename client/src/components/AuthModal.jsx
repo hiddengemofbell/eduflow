@@ -3,7 +3,7 @@ import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { useAuth } from '../context/AuthContext';
 import { X, KeyRound, Lock, Mail, User, Shield, Users } from 'lucide-react';
 
-export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
+export default function AuthModal({ isOpen, onClose, onRegistered, initialMode = 'login' }) {
   const { login, register, requestPasswordReset, signInWithPasskey } = useAuth();
   const captchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY?.trim();
   const captchaRef = useRef(null);
@@ -58,6 +58,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
           org_name: orgName,
           captchaToken
         });
+        onRegistered?.(result.user?.id);
         if (result.requiresEmailConfirmation) {
           setConfirmationEmail(email.trim());
           setPassword('');

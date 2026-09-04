@@ -13,9 +13,21 @@ import ProfileView from './components/ProfileView';
 import TaskModal from './components/TaskModal';
 import MfaChallenge from './components/MfaChallenge';
 import PasswordRecoveryModal from './components/PasswordRecoveryModal';
+import WelcomeBanner from './components/WelcomeBanner';
+
+const WELCOME_USER_KEY = 'eduflow_welcome_user';
+
+const getPendingWelcomeUser = () => {
+  try {
+    return localStorage.getItem(WELCOME_USER_KEY);
+  } catch (error) {
+    return null;
+  }
+};
 
 export default function App() {
-  const { isAuthenticated, loading, mfaRequired, passwordRecovery } = useAuth();
+  const { user, authUserId, isAuthenticated, loading, mfaRequired, passwordRecovery } = useAuth();
+  const [welcomeUserId, setWelcomeUserId] = useState(getPendingWelcomeUser);
 
   // Navigation State
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -28,6 +40,25 @@ export default function App() {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState(null);
   const [taskDefaultCategory, setTaskDefaultCategory] = useState('CURRICULAR');
+
+  const handleRegistered = (newAuthUserId) => {
+    if (!newAuthUserId) return;
+    try {
+      localStorage.setItem(WELCOME_USER_KEY, newAuthUserId);
+    } catch (error) {
+      // The current page can still show the banner when storage is unavailable.
+    }
+    setWelcomeUserId(newAuthUserId);
+  };
+
+  const dismissWelcome = () => {
+    try {
+      localStorage.removeItem(WELCOME_USER_KEY);
+    } catch (error) {
+      // State remains the source of truth for this page session.
+    }
+    setWelcomeUserId(null);
+  };
 
   if (passwordRecovery) {
     return <PasswordRecoveryModal />;
@@ -59,6 +90,7 @@ export default function App() {
         <AuthModal
           isOpen={authModalOpen}
           onClose={() => setAuthModalOpen(false)}
+          onRegistered={handleRegistered}
           initialMode={authMode}
         />
       </>
@@ -109,6 +141,16 @@ export default function App() {
       <div className="flex-1 max-w-7xl w-full mx-auto flex bg-gray-50 dark:bg-[#120B1D] transition-colors duration-300">
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
         <main className="flex-1 p-6 md:p-8 overflow-y-auto bg-gray-50 dark:bg-[#120B1D] transition-colors duration-300">
+          {welcomeUserId === authUserId && (
+            <WelcomeBanner
+              name={user?.name}
+              onDismiss={dismissWelcome}
+              onGetStarted={() => {
+                dismissWelcome();
+                handleOpenNewTask();
+              }}
+            />
+          )}
           {renderMainContent()}
         </main>
       </div>

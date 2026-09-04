@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }) => {
   const [passwordRecovery, setPasswordRecovery] = useState(isPasswordRecoveryRedirect);
 
   const token = session?.access_token || null;
+  const authUserId = session?.user?.id || null;
 
   useEffect(() => {
     localStorage.removeItem('eduflow_token');
@@ -311,6 +312,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = useMemo(() => ({
     user,
+    authUserId,
     token,
     loading,
     mfaRequired,
@@ -332,7 +334,7 @@ export const AuthProvider = ({ children }) => {
     joinOrganization,
     createOrganization,
     isAuthenticated: Boolean(user)
-  }), [loading, mfaRequired, passwordRecovery, token, user]);
+  }), [authUserId, loading, mfaRequired, passwordRecovery, token, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
