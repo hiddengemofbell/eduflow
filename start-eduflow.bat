@@ -1,17 +1,13 @@
 @echo off
-title EduFlow Launcher
-echo ======================================================
-echo           Starting EduFlow Application
-echo ======================================================
-echo 1. Starting Backend REST API Server (Port 5000)...
-start "EduFlow Backend Server" cmd /k "cd /d %~dp0server && npm start"
+title EduFlow App Launcher
+echo Starting EduFlow System...
 
-echo 2. Starting Frontend React Client (Port 3000)...
-start "EduFlow Frontend Client" cmd /k "cd /d %~dp0client && npm run dev"
+:: Start Express Backend Server silently
+start /b node "%~dp0server\server.js" > NUL 2>&1
 
-echo.
-echo ======================================================
-echo Both servers are starting up in separate windows!
-echo Access EduFlow in your browser at: http://localhost:3000
-echo ======================================================
-pause
+:: Start Vite Dev Server silently
+start /b npm --prefix "%~dp0client" run dev > NUL 2>&1
+
+:: Wait 2 seconds then launch EduFlow in default browser / PWA app window
+timeout /t 2 /nobreak > NUL
+start http://localhost:5050/

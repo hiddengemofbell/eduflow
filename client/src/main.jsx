@@ -6,19 +6,12 @@ import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
 import { TaskProvider } from './context/TaskContext'
 
-// Register Service Worker ONLY in production to prevent caching stale dev builds
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+// Register PWA Service Worker for offline app capability
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then(reg => console.log('EduFlow ServiceWorker registered:', reg.scope))
       .catch(err => console.error('EduFlow ServiceWorker registration failed:', err));
-  });
-} else if ('serviceWorker' in navigator) {
-  // Unregister any active service worker during dev so changes refresh instantly
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    for (let registration of registrations) {
-      registration.unregister();
-    }
   });
 }
 
