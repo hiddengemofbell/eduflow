@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { parseLocalDate } from '../utils/dates';
 
@@ -28,6 +28,7 @@ export const TaskProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const inFlightUpdatesRef = useRef(new Map());
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -82,7 +83,16 @@ export const TaskProvider = ({ children }) => {
       });
       if (res.ok) {
         const data = await res.json();
-        setTasks(data.tasks);
+        const serverTasks = Array.isArray(data.tasks) ? data.tasks : [];
+        setTasks(prevTasks => {
+          return serverTasks.map(serverTask => {
+            const pending = inFlightUpdatesRef.current.get(String(serverTask.id));
+            if (pending) {
+              return { ...serverTask, ...pending };
+            }
+            return serverTask;
+          });
+        });
         setIsOffline(false);
       } else {
         const errData = await res.json().catch(() => ({}));
@@ -133,10 +143,14 @@ export const TaskProvider = ({ children }) => {
   };
 
   const updateTask = async (id, updateData) => {
+    const stringId = String(id);
     const previousTasks = tasks;
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updateData, updated_at: new Date().toISOString() } : t));
+    inFlightUpdatesRef.current.set(stringId, updateData);
+
+    setTasks(prev => prev.map(t => String(t.id) === stringId ? { ...t, ...updateData, updated_at: new Date().toISOString() } : t));
 
     if (isOffline) {
+      inFlightUpdatesRef.current.delete(stringId);
       setTasks(previousTasks);
       throw new Error('You are offline. Connect to the internet before updating a task.');
     }
@@ -155,7 +169,7 @@ export const TaskProvider = ({ children }) => {
         throw new Error(data.message || 'Failed to update task.');
       }
       if (data.task) {
-        setTasks(prev => prev.map(t => t.id === id ? data.task : t));
+        setTasks(prev => prev.map(t => String(t.id) === stringId ? data.task : t));
       } else {
         await fetchTasks({ silent: true });
       }
@@ -163,12 +177,15 @@ export const TaskProvider = ({ children }) => {
       setTasks(previousTasks);
       if (!navigator.onLine) setIsOffline(true);
       throw err;
+    } finally {
+      inFlightUpdatesRef.current.delete(stringId);
     }
   };
 
   const deleteTask = async (id) => {
+    const stringId = String(id);
     const previousTasks = tasks;
-    setTasks(prev => prev.filter(t => t.id !== id));
+    setTasks(prev => prev.filter(t => String(t.id) !== stringId));
 
     if (isOffline) {
       setTasks(previousTasks);

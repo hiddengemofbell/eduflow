@@ -50,8 +50,12 @@ export default function UpcomingTasks({ onEditTask }) {
     >
       <div className="flex items-center space-x-3">
         <button
-          onClick={() => updateTask(t.id, { status: t.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' })
-            .catch((error) => window.alert(error.message))}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            updateTask(t.id, { status: t.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' })
+              .catch((error) => window.alert(error.message));
+          }}
           className={`w-5 h-5 rounded-lg border flex items-center justify-center transition ${
             t.status === 'COMPLETED'
               ? 'bg-emerald-500 border-emerald-500 text-white'

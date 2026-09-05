@@ -11,6 +11,7 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [updatingTaskId, setUpdatingTaskId] = useState(null);
 
   const filteredTasks = tasks.filter(t => {
     if (activeCategory === 'curricular' && t.task_type !== 'CURRICULAR') return false;
@@ -71,26 +72,37 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
   };
 
   const getStatusButton = (t) => {
+    const isUpdating = String(updatingTaskId) === String(t.id);
     const isCompleted = t.status === 'COMPLETED';
     const isInProgress = t.status === 'IN_PROGRESS';
 
-    const handleCycleStatus = async () => {
+    const handleCycleStatus = async (e) => {
+      e?.stopPropagation();
+      if (updatingTaskId) return;
+
       let nextStatus = 'PENDING';
       if (t.status === 'PENDING') nextStatus = 'IN_PROGRESS';
       else if (t.status === 'IN_PROGRESS') nextStatus = 'COMPLETED';
       else nextStatus = 'PENDING';
 
+      setUpdatingTaskId(t.id);
       try {
         await updateTask(t.id, { status: nextStatus });
       } catch (error) {
         window.alert(error.message);
+      } finally {
+        setUpdatingTaskId(null);
       }
     };
 
     return (
       <button
+        type="button"
+        disabled={isUpdating}
         onClick={handleCycleStatus}
-        className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center space-x-1.5 transition transform hover:scale-105 ${
+        className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center space-x-1.5 transition transform ${
+          isUpdating ? 'opacity-70 cursor-wait' : 'hover:scale-105 active:scale-95'
+        } ${
           isCompleted ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' :
           isInProgress ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300' :
           'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900'
