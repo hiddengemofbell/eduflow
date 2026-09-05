@@ -12,6 +12,7 @@ import UpcomingTasks from './components/UpcomingTasks';
 import OrganizationView from './components/OrganizationView';
 import ProfileView from './components/ProfileView';
 import TaskModal from './components/TaskModal';
+import DownloadShortcutModal from './components/DownloadShortcutModal';
 import MfaChallenge from './components/MfaChallenge';
 import PasswordRecoveryModal from './components/PasswordRecoveryModal';
 import WelcomeBanner from './components/WelcomeBanner';
@@ -95,6 +96,7 @@ export default function App() {
           onRegistered={handleRegistered}
           initialMode={authMode}
         />
+        <DownloadShortcutModal />
       </>
     );
   }
@@ -249,6 +251,7 @@ export default function App() {
         taskToEdit={taskToEdit}
         defaultCategory={taskDefaultCategory}
       />
+      <DownloadShortcutModal />
     </div>
   );
 }

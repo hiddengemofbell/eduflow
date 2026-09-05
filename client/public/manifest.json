@@ -1,17 +1,32 @@
 {
   "short_name": "EduFlow",
   "name": "EduFlow Student Task Manager",
+  "description": "Student Task and Activity Management System",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#120B1D",
+  "theme_color": "#FFC8DD",
   "icons": [
+    {
+      "src": "/logo-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
     {
       "src": "/logo.png",
       "type": "image/png",
       "sizes": "1024x1024",
       "purpose": "any maskable"
     }
-  ],
-  "start_url": "/",
-  "background_color": "#120B1D",
-  "theme_color": "#FFC8DD",
-  "display": "standalone",
-  "orientation": "portrait"
+  ]
 }

@@ -1,9 +1,11 @@
 import React from 'react';
-import { CheckCircle2, Shield, Users, Layers, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Shield, Users, Layers, ArrowRight, Download } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { usePwa } from '../context/PwaContext';
 
 export default function LandingPage({ onOpenLogin, onOpenRegister }) {
   const { isDark, toggleTheme } = useTheme();
+  const { canInstall, triggerDownload } = usePwa();
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#120B1D] text-[#2B1B3D] dark:text-gray-100 font-sans flex flex-col transition-colors duration-300">
@@ -16,6 +18,19 @@ export default function LandingPage({ onOpenLogin, onOpenRegister }) {
           </div>
 
           <div className="flex items-center space-x-1.5 sm:space-x-3">
+            {canInstall && (
+              <button
+                type="button"
+                onClick={triggerDownload}
+                className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] text-xs font-black rounded-xl shadow-sm transition transform hover:scale-105 active:scale-95 border border-[#FFAFCC]"
+                title="Download EduFlow Shortcut / App"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Download App</span>
+                <span className="sm:hidden text-[11px]">Download</span>
+              </button>
+            )}
+
             <button
               onClick={toggleTheme}
               className="px-2.5 sm:px-3 py-1.5 rounded-xl border border-gray-200 dark:border-[#332352] text-xs font-bold text-[#2B1B3D] dark:text-[#FFAFCC] hover:bg-gray-50 dark:hover:bg-[#332352] transition"
@@ -73,6 +88,17 @@ export default function LandingPage({ onOpenLogin, onOpenRegister }) {
             >
               Log In to Portal
             </button>
+
+            {canInstall && (
+              <button
+                type="button"
+                onClick={triggerDownload}
+                className="w-full sm:w-auto px-6 py-3.5 bg-[#BDE0FE]/35 hover:bg-[#BDE0FE] dark:bg-[#332352] dark:hover:bg-[#3E285C] text-[#2B1B3D] dark:text-[#BDE0FE] border border-[#BDE0FE] dark:border-[#3E285C] font-extrabold text-sm rounded-2xl transition flex items-center justify-center space-x-2"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download Shortcut</span>
+              </button>
+            )}
           </div>
         </div>
 

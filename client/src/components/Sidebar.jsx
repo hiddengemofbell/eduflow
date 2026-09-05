@@ -1,9 +1,11 @@
 import React from 'react';
-import { LayoutDashboard, CheckSquare, GraduationCap, Compass, Users, Calendar, AlertCircle, User, Settings, Archive, X } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, GraduationCap, Compass, Users, Calendar, AlertCircle, User, Settings, Archive, X, Download } from 'lucide-react';
 import { useTasks } from '../context/TaskContext';
+import { usePwa } from '../context/PwaContext';
 
 export default function Sidebar({ activeTab, setActiveTab, mobileOpen, onCloseMobileMenu }) {
   const { stats } = useTasks();
+  const { canInstall, triggerDownload } = usePwa();
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -108,10 +110,32 @@ export default function Sidebar({ activeTab, setActiveTab, mobileOpen, onCloseMo
         })}
       </nav>
 
-      <div className="mt-8 p-4 bg-gradient-to-br from-[#CDB4DB]/40 via-[#FFC8DD]/40 to-[#BDE0FE]/40 dark:from-[#1E142D] dark:to-[#332352] rounded-2xl border border-[#CDB4DB]/50 dark:border-[#332352] text-center">
-        <h4 className="text-xs font-black text-[#2B1B3D] dark:text-[#FFC8DD]">EduFlow PWA v1.2</h4>
-        <p className="text-[10px] text-gray-600 dark:text-gray-300 mt-1 font-medium">Offline App & Dark Mode Ready</p>
-      </div>
+      {canInstall ? (
+        <div className="mt-6 p-4 bg-gradient-to-br from-[#FFC8DD]/40 via-[#BDE0FE]/40 to-[#CDB4DB]/40 dark:from-[#2B1B3D] dark:to-[#332352] rounded-2xl border border-[#FFAFCC]/60 dark:border-[#3E285C] text-center space-y-2 shadow-sm">
+          <div className="flex items-center justify-center space-x-1.5 text-xs font-black text-[#2B1B3D] dark:text-white">
+            <Download className="w-4 h-4 text-[#2B1B3D] dark:text-[#FFAFCC]" />
+            <span>Download Shortcut</span>
+          </div>
+          <p className="text-[10px] text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
+            Install app shortcut for 1-click access and offline usage.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              if (onCloseMobileMenu) onCloseMobileMenu();
+              triggerDownload();
+            }}
+            className="w-full py-2 px-3 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] text-xs font-black rounded-xl shadow transition transform hover:scale-[1.02] active:scale-95"
+          >
+            Download App
+          </button>
+        </div>
+      ) : (
+        <div className="mt-8 p-4 bg-gradient-to-br from-[#CDB4DB]/40 via-[#FFC8DD]/40 to-[#BDE0FE]/40 dark:from-[#1E142D] dark:to-[#332352] rounded-2xl border border-[#CDB4DB]/50 dark:border-[#332352] text-center">
+          <h4 className="text-xs font-black text-[#2B1B3D] dark:text-[#FFC8DD]">EduFlow v1.2</h4>
+          <p className="text-[10px] text-gray-600 dark:text-gray-300 mt-1 font-medium">Offline App & Dark Mode Ready</p>
+        </div>
+      )}
     </>
   );
 

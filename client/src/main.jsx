@@ -5,6 +5,7 @@ import './index.css'
 import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
 import { TaskProvider } from './context/TaskContext'
+import { PwaProvider } from './context/PwaContext'
 
 // Register PWA Service Worker for offline app capability
 if ('serviceWorker' in navigator) {
@@ -20,7 +21,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ThemeProvider>
       <AuthProvider>
         <TaskProvider>
-          <App />
+          <PwaProvider>
+            <App />
+          </PwaProvider>
         </TaskProvider>
       </AuthProvider>
     </ThemeProvider>

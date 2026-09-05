@@ -1,33 +1,13 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { usePwa } from '../context/PwaContext';
 import { Sun, Moon, Plus, LogOut, Download, Menu } from 'lucide-react';
 
 export default function Navbar({ onOpenTaskModal, onToggleMobileMenu }) {
   const { isDark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
-  const [deferredPrompt, setDeferredPrompt] = React.useState(null);
-
-  React.useEffect(() => {
-    const handleBeforeInstall = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-  }, []);
-
-  const handleInstallPWA = async () => {
-    if (!deferredPrompt) {
-      alert('PWA is already installed or your browser supports installing via the address bar menu.');
-      return;
-    }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-    }
-  };
+  const { canInstall, triggerDownload } = usePwa();
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 dark:bg-[#1E142D]/90 backdrop-blur-md border-b border-gray-200 dark:border-[#332352] transition-colors duration-300">
@@ -66,15 +46,17 @@ export default function Navbar({ onOpenTaskModal, onToggleMobileMenu }) {
 
         {/* Right Actions */}
         <div className="flex items-center space-x-1.5 sm:space-x-3">
-          {/* PWA Install Button */}
-          {deferredPrompt && (
+          {/* Download Shortcut Button (Visible in browser, disappears once fully downloaded/installed) */}
+          {canInstall && (
             <button
-              onClick={handleInstallPWA}
-              className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 bg-[#BDE0FE]/40 hover:bg-[#BDE0FE] dark:bg-[#332352] dark:hover:bg-[#3E285C] text-[#2B1B3D] dark:text-[#BDE0FE] text-xs font-bold rounded-xl transition"
-              title="Install EduFlow PWA App"
+              type="button"
+              onClick={triggerDownload}
+              className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] text-xs font-extrabold rounded-xl shadow-sm transition transform hover:scale-105 active:scale-95 border border-[#FFAFCC] shrink-0"
+              title="Download EduFlow Shortcut / App"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Install App</span>
+              <Download className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Download App</span>
+              <span className="sm:hidden text-[11px]">Download</span>
             </button>
           )}
 
