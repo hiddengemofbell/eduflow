@@ -1,4 +1,7 @@
-const { Pool } = require('pg');
+const { Pool, types } = require('pg');
+
+// Parse PostgreSQL DATE (OID 1082) as a raw string (YYYY-MM-DD) instead of JavaScript Date object
+types.setTypeParser(1082, (val) => val);
 
 const databaseUrl = process.env.DATABASE_URL;
 

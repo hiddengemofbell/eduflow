@@ -304,7 +304,7 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
                         }`}>
                           {t.task_type}
                         </span>
-                        <span>Due: {t.due_date}</span>
+                        <span>Due: {t.due_date ? String(t.due_date).split('T')[0] : ''}</span>
                       </div>
                     </div>
                   </div>

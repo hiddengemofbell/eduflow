@@ -12,9 +12,25 @@ const parseTaskId = (value) => {
   return Number.isSafeInteger(id) && id > 0 ? id : null;
 };
 
+const normalizeDate = (value) => {
+  if (!value) return value;
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed.includes('T')) {
+      return trimmed.split('T')[0];
+    }
+    return trimmed;
+  }
+  return value;
+};
+
 const validDate = (value) => {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [year, month, day] = value.split('-').map(Number);
+  const str = normalizeDate(value);
+  if (typeof str !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(str)) return false;
+  const [year, month, day] = str.split('-').map(Number);
   const parsed = new Date(Date.UTC(year, month - 1, day));
   return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
 };
@@ -23,6 +39,14 @@ const validTime = (value) => value === null || value === undefined || value === 
 const parseOptionalUserId = (value) => {
   if (value === null || value === undefined || value === '') return null;
   return parseTaskId(value);
+};
+
+const formatTask = (task) => {
+  if (!task) return task;
+  return {
+    ...task,
+    due_date: normalizeDate(task.due_date)
+  };
 };
 
 const isOrganizationMember = async (userId, organizationId) => {
@@ -60,7 +84,7 @@ router.get('/', authenticateToken, async (req, res) => {
     sql += ` ORDER BY t.due_date ASC, t.due_time ASC`;
 
     const tasks = await query(sql, params);
-    res.json({ tasks });
+    res.json({ tasks: tasks.map(formatTask) });
   } catch (error) {
     console.error('Fetch tasks error:', error);
     res.status(500).json({ message: 'Server error fetching tasks.' });
@@ -77,7 +101,8 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 
     const type = task_type || 'CURRICULAR';
-    if (typeof title !== 'string' || !title.trim() || title.trim().length > 200 || (description !== undefined && (typeof description !== 'string' || description.length > 10000)) || !TASK_TYPES.includes(type) || !validDate(due_date) || !validTime(due_time) || !PRIORITIES.includes(priority || 'MEDIUM')) {
+    const cleanDueDate = normalizeDate(due_date);
+    if (typeof title !== 'string' || !title.trim() || title.trim().length > 200 || (description !== undefined && (typeof description !== 'string' || description.length > 10000)) || !TASK_TYPES.includes(type) || !validDate(cleanDueDate) || !validTime(due_time) || !PRIORITIES.includes(priority || 'MEDIUM')) {
       return res.status(400).json({ message: 'One or more task fields are invalid.' });
     }
 
@@ -106,7 +131,7 @@ router.post('/', authenticateToken, async (req, res) => {
     const result = await run(
       `INSERT INTO tasks (owner_id, assigned_to, organization_id, title, description, task_type, due_date, due_time, priority, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [req.user.id, targetAssignedTo, targetOrgId, title.trim(), description || '', type, due_date, optionalTime, taskPriority, initialStatus]
+      [req.user.id, targetAssignedTo, targetOrgId, title.trim(), description || '', type, cleanDueDate, optionalTime, taskPriority, initialStatus]
     );
 
     const createdTask = await getOne(
@@ -120,7 +145,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
     res.status(201).json({
       message: 'Task created successfully',
-      task: createdTask
+      task: formatTask(createdTask)
     });
   } catch (error) {
     console.error('Create task error:', error);
@@ -166,7 +191,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
       const title = req.body.title !== undefined ? req.body.title : task.title;
       const description = req.body.description !== undefined ? req.body.description : task.description;
       const task_type = req.body.task_type !== undefined ? req.body.task_type : task.task_type;
-      const due_date = req.body.due_date !== undefined ? req.body.due_date : task.due_date;
+      const due_date = normalizeDate(req.body.due_date !== undefined ? req.body.due_date : task.due_date);
       const due_time = req.body.due_time !== undefined ? req.body.due_time : task.due_time;
       const priority = req.body.priority !== undefined ? req.body.priority : task.priority;
       const status = req.body.status !== undefined ? req.body.status : task.status;
@@ -207,7 +232,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
     res.json({
       message: 'Task updated successfully',
-      task: updatedTask
+      task: formatTask(updatedTask)
     });
   } catch (error) {
     console.error('Update task error:', error);
@@ -245,5 +270,9 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Server error deleting task.' });
   }
 });
+
+router.normalizeDate = normalizeDate;
+router.validDate = validDate;
+router.formatTask = formatTask;
 
 module.exports = router;

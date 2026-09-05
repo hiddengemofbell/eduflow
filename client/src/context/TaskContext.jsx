@@ -6,7 +6,8 @@ const TaskContext = createContext();
 
 export const formatDueDateTime = (dueDate, dueTime) => {
   if (!dueDate) return '';
-  if (!dueTime) return `${dueDate} (All Day)`;
+  const dateStr = typeof dueDate === 'string' && dueDate.includes('T') ? dueDate.split('T')[0] : String(dueDate);
+  if (!dueTime) return `${dateStr} (All Day)`;
 
   // Convert "14:30" to "2:30 PM"
   try {
@@ -14,9 +15,9 @@ export const formatDueDateTime = (dueDate, dueTime) => {
     const h = parseInt(hours, 10);
     const ampm = h >= 12 ? 'PM' : 'AM';
     const formattedHours = h % 12 || 12;
-    return `${dueDate} at ${formattedHours}:${minutes} ${ampm}`;
+    return `${dateStr} at ${formattedHours}:${minutes} ${ampm}`;
   } catch (e) {
-    return `${dueDate} ${dueTime}`;
+    return `${dateStr} ${dueTime}`;
   }
 };
 
