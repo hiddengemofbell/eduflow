@@ -177,7 +177,7 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
       </div>
 
       {/* Task List / Empty States */}
-      {loading ? (
+      {loading && tasks.length === 0 ? (
         <div className="p-12 text-center text-xs font-bold text-gray-400">Loading tasks...</div>
       ) : isTotalCategoryEmpty ? (
         /* Empty State A: No tasks in system/category */

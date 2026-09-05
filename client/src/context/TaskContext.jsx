@@ -67,11 +67,14 @@ export const TaskProvider = ({ children }) => {
     }
   }, [tasks, cacheOwnerId, user?.id]);
 
-  const fetchTasks = useCallback(async () => {
+  const fetchTasks = useCallback(async (options = {}) => {
+    const silent = typeof options === 'boolean' ? options : Boolean(options?.silent);
     if (!token || !isAuthenticated) {
       return;
     }
-    setLoading(true);
+    if (!silent) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const res = await fetch('/api/tasks', {
@@ -89,7 +92,9 @@ export const TaskProvider = ({ children }) => {
       console.warn('Network unavailable, running in offline mode with local tasks.', err);
       setIsOffline(true);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [token, isAuthenticated, user?.id]);
 
@@ -115,7 +120,11 @@ export const TaskProvider = ({ children }) => {
       if (!res.ok) {
         throw new Error(data.message || 'Failed to create task.');
       }
-      await fetchTasks();
+      if (data.task) {
+        setTasks(prev => [data.task, ...prev]);
+      } else {
+        await fetchTasks({ silent: true });
+      }
       return data.task;
     } catch (err) {
       if (!navigator.onLine) setIsOffline(true);
@@ -141,11 +150,15 @@ export const TaskProvider = ({ children }) => {
         },
         body: JSON.stringify(updateData)
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(data.message || 'Failed to update task.');
       }
-      await fetchTasks();
+      if (data.task) {
+        setTasks(prev => prev.map(t => t.id === id ? data.task : t));
+      } else {
+        await fetchTasks({ silent: true });
+      }
     } catch (err) {
       setTasks(previousTasks);
       if (!navigator.onLine) setIsOffline(true);
@@ -173,7 +186,6 @@ export const TaskProvider = ({ children }) => {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message || 'Failed to delete task.');
       }
-      await fetchTasks();
       return true;
     } catch (err) {
       setTasks(previousTasks);
