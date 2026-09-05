@@ -190,6 +190,11 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
           <div>
             <div className="text-xs font-extrabold text-gray-400 dark:text-gray-400 uppercase tracking-wider">Completed</div>
             <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{stats.completed}</div>
+            {stats.archived > 0 && (
+              <span className="text-[10px] font-bold text-purple-600 dark:text-purple-300 block mt-0.5">
+                +{stats.archived} archived
+              </span>
+            )}
           </div>
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold">
             <CheckCircle2 className="w-6 h-6" />

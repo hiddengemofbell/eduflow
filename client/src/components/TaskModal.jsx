@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import CustomSelect from './CustomSelect';
 import CustomDatePicker from './CustomDatePicker';
 import { toLocalDateString } from '../utils/dates';
-import { X, UserCheck, Clock, Calendar, Tag, Flag, CheckCircle2, FileText, Sparkles } from 'lucide-react';
+import { X, UserCheck, Clock, Calendar, Tag, Flag, CheckCircle2, FileText, Sparkles, Archive } from 'lucide-react';
 
 const VALID_CATEGORIES = ['CURRICULAR', 'EXTRACURRICULAR', 'ORG'];
 const sanitizeCategory = (cat) => {
@@ -24,6 +24,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
   const [dueTime, setDueTime] = useState('');
   const [priority, setPriority] = useState('MEDIUM');
   const [status, setStatus] = useState('PENDING');
+  const [isArchived, setIsArchived] = useState(false);
   const [assignedTo, setAssignedTo] = useState('');
   const [orgMembers, setOrgMembers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -50,6 +51,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
       setDueTime(taskToEdit.due_time ? taskToEdit.due_time.slice(0, 5) : '');
       setPriority(taskToEdit.priority || 'MEDIUM');
       setStatus(taskToEdit.status || 'PENDING');
+      setIsArchived(Boolean(taskToEdit.is_archived));
       setAssignedTo(taskToEdit.assigned_to || '');
     } else {
       setTitle('');
@@ -59,6 +61,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
       setDueTime('');
       setPriority('MEDIUM');
       setStatus('PENDING');
+      setIsArchived(false);
       setAssignedTo('');
     }
   }, [taskToEdit, defaultCategory, isOpen]);
@@ -79,6 +82,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
         due_time: dueTime ? dueTime.trim() : null,
         priority: ['LOW', 'MEDIUM', 'HIGH'].includes(priority) ? priority : 'MEDIUM',
         status: ['PENDING', 'IN_PROGRESS', 'COMPLETED'].includes(status) ? status : 'PENDING',
+        is_archived: status === 'COMPLETED' ? Boolean(isArchived) : false,
         assigned_to: assignedTo ? parseInt(assignedTo, 10) : null
       };
 
@@ -254,6 +258,23 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
               />
             </div>
           </div>
+
+          {/* Archive finished task option */}
+          {status === 'COMPLETED' && (
+            <div className="flex items-center space-x-2.5 p-3.5 bg-purple-50 dark:bg-[#332352]/60 rounded-2xl border border-purple-200 dark:border-purple-800 animate-scale-in">
+              <input
+                type="checkbox"
+                id="isArchivedModal"
+                checked={isArchived}
+                onChange={(e) => setIsArchived(e.target.checked)}
+                className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-400 cursor-pointer"
+              />
+              <label htmlFor="isArchivedModal" className="text-xs font-bold text-[#2B1B3D] dark:text-purple-200 cursor-pointer flex items-center space-x-1.5 select-none">
+                <Archive className="w-3.5 h-3.5 text-purple-600 dark:text-[#FFAFCC]" />
+                <span>Archive this finished task (hides from active lists & All Tasks count)</span>
+              </label>
+            </div>
+          )}
 
           {/* Org Assignment */}
           {user?.account_type === 'ORG_ADMIN' && taskType === 'ORG' && (

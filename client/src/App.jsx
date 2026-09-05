@@ -125,6 +125,8 @@ export default function App() {
         return <TaskViews activeCategory="extracurricular" onOpenTaskModal={() => handleOpenNewTask('EXTRACURRICULAR')} onEditTask={handleEditTask} />;
       case 'tasks-org':
         return <TaskViews activeCategory="org" onOpenTaskModal={() => handleOpenNewTask('ORG')} onEditTask={handleEditTask} />;
+      case 'tasks-archived':
+        return <TaskViews activeCategory="archived" onOpenTaskModal={() => handleOpenNewTask('CURRICULAR')} onEditTask={handleEditTask} />;
       case 'calendar':
         return <CalendarView onEditTask={handleEditTask} />;
       case 'upcoming':

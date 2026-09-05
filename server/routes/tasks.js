@@ -45,7 +45,8 @@ const formatTask = (task) => {
   if (!task) return task;
   return {
     ...task,
-    due_date: normalizeDate(task.due_date)
+    due_date: normalizeDate(task.due_date),
+    is_archived: Boolean(task.is_archived)
   };
 };
 
@@ -129,8 +130,8 @@ router.post('/', authenticateToken, async (req, res) => {
     const optionalTime = due_time ? due_time.trim() : null;
 
     const result = await run(
-      `INSERT INTO tasks (owner_id, assigned_to, organization_id, title, description, task_type, due_date, due_time, priority, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO tasks (owner_id, assigned_to, organization_id, title, description, task_type, due_date, due_time, priority, status, is_archived)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, false)`,
       [req.user.id, targetAssignedTo, targetOrgId, title.trim(), description || '', type, cleanDueDate, optionalTime, taskPriority, initialStatus]
     );
 
@@ -178,14 +179,22 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 
     if (!isOwner && !isOrgAdmin && isAssignee) {
-      const { status } = req.body;
-      if (!status || !['PENDING', 'IN_PROGRESS', 'COMPLETED'].includes(status)) {
+      const status = req.body.status !== undefined ? req.body.status : task.status;
+      if (!STATUSES.includes(status)) {
         return res.status(400).json({ message: 'Invalid status value.' });
       }
 
+      let is_archived = req.body.is_archived !== undefined ? Boolean(req.body.is_archived) : Boolean(task.is_archived);
+      if (req.body.is_archived === true && status !== 'COMPLETED') {
+        return res.status(400).json({ message: 'Only completed tasks can be archived.' });
+      }
+      if (status !== 'COMPLETED') {
+        is_archived = false;
+      }
+
       await run(
-        'UPDATE tasks SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [status, taskId]
+        'UPDATE tasks SET status = ?, is_archived = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [status, is_archived, taskId]
       );
     } else {
       const title = req.body.title !== undefined ? req.body.title : task.title;
@@ -197,6 +206,14 @@ router.put('/:id', authenticateToken, async (req, res) => {
       const status = req.body.status !== undefined ? req.body.status : task.status;
       const requestedAssignee = req.body.assigned_to !== undefined ? req.body.assigned_to : task.assigned_to;
       const assigned_to = parseOptionalUserId(requestedAssignee);
+
+      let is_archived = req.body.is_archived !== undefined ? Boolean(req.body.is_archived) : Boolean(task.is_archived);
+      if (req.body.is_archived === true && status !== 'COMPLETED') {
+        return res.status(400).json({ message: 'Only completed tasks can be archived.' });
+      }
+      if (status !== 'COMPLETED') {
+        is_archived = false;
+      }
 
       if (typeof title !== 'string' || !title.trim() || title.trim().length > 200 || typeof description !== 'string' || description.length > 10000 || !TASK_TYPES.includes(task_type) || !PRIORITIES.includes(priority) || !STATUSES.includes(status) || !validDate(due_date) || !validTime(due_time) || (requestedAssignee !== null && requestedAssignee !== undefined && requestedAssignee !== '' && !assigned_to)) {
         return res.status(400).json({ message: 'One or more task fields are invalid.' });
@@ -215,9 +232,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
       await run(
         `UPDATE tasks 
-         SET title = ?, description = ?, task_type = ?, due_date = ?, due_time = ?, priority = ?, status = ?, assigned_to = ?, updated_at = CURRENT_TIMESTAMP 
+         SET title = ?, description = ?, task_type = ?, due_date = ?, due_time = ?, priority = ?, status = ?, assigned_to = ?, is_archived = ?, updated_at = CURRENT_TIMESTAMP 
          WHERE id = ?`,
-        [title.trim(), description, task_type, due_date, due_time || null, priority, status, assigned_to, taskId]
+        [title.trim(), description, task_type, due_date, due_time || null, priority, status, assigned_to, is_archived, taskId]
       );
     }
 

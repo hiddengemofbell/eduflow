@@ -45,6 +45,7 @@ export default function CalendarView({ onEditTask }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const visibleTasks = tasks.filter(t => {
+    if (t.is_archived) return false;
     if (t.task_type === 'CURRICULAR' && !showCurricular) return false;
     if (t.task_type === 'EXTRACURRICULAR' && !showExtracurricular) return false;
     if (t.task_type === 'ORG' && !showOrg) return false;

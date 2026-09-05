@@ -240,17 +240,29 @@ export const TaskProvider = ({ children }) => {
     return due < now && due.toDateString() !== now.toDateString();
   };
 
-  const dueTodayTasks = tasks.filter(t => isDueToday(t.due_date) && t.status !== 'COMPLETED');
-  const overdueTasks = tasks.filter(t => isOverdue(t.due_date, t.status));
+  const archiveTask = async (id) => {
+    return updateTask(id, { is_archived: true });
+  };
+
+  const unarchiveTask = async (id) => {
+    return updateTask(id, { is_archived: false });
+  };
+
+  const unarchivedTasks = tasks.filter(t => !t.is_archived);
+  const archivedTasks = tasks.filter(t => Boolean(t.is_archived));
+
+  const dueTodayTasks = unarchivedTasks.filter(t => isDueToday(t.due_date) && t.status !== 'COMPLETED');
+  const overdueTasks = unarchivedTasks.filter(t => isOverdue(t.due_date, t.status));
 
   const stats = {
-    total: tasks.length,
-    pending: tasks.filter(t => t.status === 'PENDING').length,
-    inProgress: tasks.filter(t => t.status === 'IN_PROGRESS').length,
-    completed: tasks.filter(t => t.status === 'COMPLETED').length,
-    curricular: tasks.filter(t => t.task_type === 'CURRICULAR').length,
-    extracurricular: tasks.filter(t => t.task_type === 'EXTRACURRICULAR').length,
-    org: tasks.filter(t => t.task_type === 'ORG').length,
+    total: unarchivedTasks.length,
+    pending: unarchivedTasks.filter(t => t.status === 'PENDING').length,
+    inProgress: unarchivedTasks.filter(t => t.status === 'IN_PROGRESS').length,
+    completed: unarchivedTasks.filter(t => t.status === 'COMPLETED').length,
+    archived: archivedTasks.length,
+    curricular: unarchivedTasks.filter(t => t.task_type === 'CURRICULAR').length,
+    extracurricular: unarchivedTasks.filter(t => t.task_type === 'EXTRACURRICULAR').length,
+    org: unarchivedTasks.filter(t => t.task_type === 'ORG').length,
     dueToday: dueTodayTasks.length,
     overdue: overdueTasks.length
   };
@@ -258,6 +270,8 @@ export const TaskProvider = ({ children }) => {
   return (
     <TaskContext.Provider value={{
       tasks,
+      unarchivedTasks,
+      archivedTasks,
       loading,
       error,
       stats,
@@ -267,7 +281,9 @@ export const TaskProvider = ({ children }) => {
       fetchTasks,
       addTask,
       updateTask,
-      deleteTask
+      deleteTask,
+      archiveTask,
+      unarchiveTask
     }}>
       {children}
     </TaskContext.Provider>

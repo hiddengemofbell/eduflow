@@ -1,4 +1,4 @@
-﻿const test = require('node:test');
+const test = require('node:test');
 const assert = require('node:assert/strict');
 const { normalizeDate, validDate, formatTask } = require('../routes/tasks');
 
@@ -30,17 +30,30 @@ test('formatTask ensures due_date is formatted as YYYY-MM-DD', () => {
     id: 1,
     title: 'Spade',
     due_date: '2026-09-05T00:00:00.000Z',
-    status: 'IN_PROGRESS'
+    status: 'IN_PROGRESS',
+    is_archived: false
   };
   const formatted = formatTask(taskWithIso);
   assert.equal(formatted.due_date, '2026-09-05');
+  assert.equal(formatted.is_archived, false);
 
   const taskWithDateObj = {
     id: 2,
     title: 'Test',
     due_date: new Date('2026-09-05T00:00:00.000Z'),
-    status: 'PENDING'
+    status: 'COMPLETED',
+    is_archived: true
   };
   const formatted2 = formatTask(taskWithDateObj);
   assert.equal(formatted2.due_date, '2026-09-05');
+  assert.equal(formatted2.is_archived, true);
+
+  const taskWithoutArchived = {
+    id: 3,
+    title: 'No archived flag',
+    due_date: '2026-09-05',
+    status: 'PENDING'
+  };
+  const formatted3 = formatTask(taskWithoutArchived);
+  assert.equal(formatted3.is_archived, false);
 });

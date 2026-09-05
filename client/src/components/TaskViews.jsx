@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useTasks, formatDueDateTime } from '../context/TaskContext';
 import { useAuth } from '../context/AuthContext';
 import CustomSelect from './CustomSelect';
-import { Search, Filter, Plus, Edit2, Trash2, CheckCircle2, Clock, Building, User, Sparkles, RefreshCw } from 'lucide-react';
+import { Search, Filter, Plus, Edit2, Trash2, CheckCircle2, Clock, Building, User, Sparkles, RefreshCw, Archive, ArchiveRestore } from 'lucide-react';
 
 export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onEditTask }) {
-  const { tasks, loading, updateTask, deleteTask } = useTasks();
+  const { tasks, loading, updateTask, deleteTask, archiveTask, unarchiveTask } = useTasks();
   const { user } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -13,7 +13,17 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [updatingTaskId, setUpdatingTaskId] = useState(null);
 
+  const isArchivedView = activeCategory === 'archived';
+
   const filteredTasks = tasks.filter(t => {
+    // If viewing archived category, only show archived tasks
+    if (isArchivedView) {
+      if (!t.is_archived) return false;
+    } else {
+      // In all other views (all, curricular, extracurricular, org), only show unarchived tasks
+      if (t.is_archived) return false;
+    }
+
     if (activeCategory === 'curricular' && t.task_type !== 'CURRICULAR') return false;
     if (activeCategory === 'extracurricular' && t.task_type !== 'EXTRACURRICULAR') return false;
     if (activeCategory === 'org' && t.task_type !== 'ORG') return false;
@@ -87,7 +97,11 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
 
       setUpdatingTaskId(t.id);
       try {
-        await updateTask(t.id, { status: nextStatus });
+        const payload = { status: nextStatus };
+        if (nextStatus !== 'COMPLETED') {
+          payload.is_archived = false;
+        }
+        await updateTask(t.id, payload);
       } catch (error) {
         window.alert(error.message);
       } finally {
@@ -118,11 +132,14 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
     all: 'All Tasks & Activities',
     curricular: 'Curricular Tasks (Academic Requirements)',
     extracurricular: 'Extracurricular & Event Responsibilities',
-    org: 'Organization-Assigned Responsibilities'
+    org: 'Organization-Assigned Responsibilities',
+    archived: 'Archived Tasks (Finished & Stored)'
   };
 
   const isSearchActive = searchQuery.trim() !== '' || priorityFilter !== 'ALL' || statusFilter !== 'ALL';
   const isTotalCategoryEmpty = tasks.filter(t => {
+    if (isArchivedView) return Boolean(t.is_archived);
+    if (t.is_archived) return false;
     if (activeCategory === 'curricular') return t.task_type === 'CURRICULAR';
     if (activeCategory === 'extracurricular') return t.task_type === 'EXTRACURRICULAR';
     if (activeCategory === 'org') return t.task_type === 'ORG';
@@ -138,18 +155,25 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
             {categoryTitles[activeCategory] || 'Task Management'}
           </h1>
           <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">
-            Showing {filteredTasks.length} task{filteredTasks.length === 1 ? '' : 's'}
+            Showing {filteredTasks.length} {isArchivedView ? 'archived task' : 'task'}{filteredTasks.length === 1 ? '' : 's'}
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => onOpenTaskModal && onOpenTaskModal(activeCategory === 'all' ? 'CURRICULAR' : activeCategory.toUpperCase())}
-          className="flex items-center justify-center space-x-2 px-5 py-2.5 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-2xl shadow transition transform active:scale-95"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Task</span>
-        </button>
+        {isArchivedView ? (
+          <div className="flex items-center space-x-2 px-4 py-2 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 rounded-2xl text-xs font-bold">
+            <Archive className="w-4 h-4" />
+            <span>Archived History</span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onOpenTaskModal && onOpenTaskModal(activeCategory === 'all' ? 'CURRICULAR' : activeCategory.toUpperCase())}
+            className="flex items-center justify-center space-x-2 px-5 py-2.5 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-2xl shadow transition transform active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Task</span>
+          </button>
+        )}
       </div>
 
       {/* Filter & Search Controls */}
@@ -194,26 +218,42 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
         <div className="p-12 text-center text-xs font-bold text-gray-400">Loading tasks...</div>
       ) : isTotalCategoryEmpty ? (
         /* Empty State A: No tasks in system/category */
-        <div className="p-12 text-center bg-white dark:bg-[#1E142D] rounded-3xl border border-dashed border-gray-200 dark:border-[#332352] space-y-4 animate-scale-in">
-          <div className="w-16 h-16 rounded-3xl bg-[#FFC8DD]/30 dark:bg-[#382550] flex items-center justify-center mx-auto shadow-inner">
-            <Sparkles className="w-8 h-8 text-[#2B1B3D] dark:text-[#FFAFCC] animate-bounce" />
+        isArchivedView ? (
+          <div className="p-12 text-center bg-white dark:bg-[#1E142D] rounded-3xl border border-dashed border-gray-200 dark:border-[#332352] space-y-4 animate-scale-in">
+            <div className="w-16 h-16 rounded-3xl bg-purple-100/60 dark:bg-[#382550] flex items-center justify-center mx-auto shadow-inner">
+              <Archive className="w-8 h-8 text-[#2B1B3D] dark:text-[#FFAFCC]" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-black text-[#2B1B3D] dark:text-white">
+                No archived tasks yet 📦
+              </h3>
+              <p className="text-xs font-bold text-gray-500 dark:text-[#FFC8DD] max-w-md mx-auto leading-relaxed">
+                When tasks are marked complete, you can archive them from your active task lists to keep your workspace clutter-free.
+              </p>
+            </div>
           </div>
-          <div className="space-y-1">
-            <h3 className="text-lg font-black text-[#2B1B3D] dark:text-white">
-              Looks like there's no task... Well done! 🎉
-            </h3>
-            <p className="text-xs font-bold text-gray-500 dark:text-[#FFC8DD] max-w-md mx-auto leading-relaxed">
-              Awww... look at you! All caught up, organized, and stress-free. Time to treat yourself or add a new goal! ✨
-            </p>
+        ) : (
+          <div className="p-12 text-center bg-white dark:bg-[#1E142D] rounded-3xl border border-dashed border-gray-200 dark:border-[#332352] space-y-4 animate-scale-in">
+            <div className="w-16 h-16 rounded-3xl bg-[#FFC8DD]/30 dark:bg-[#382550] flex items-center justify-center mx-auto shadow-inner">
+              <Sparkles className="w-8 h-8 text-[#2B1B3D] dark:text-[#FFAFCC] animate-bounce" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-black text-[#2B1B3D] dark:text-white">
+                Looks like there's no task... Well done! 🎉
+              </h3>
+              <p className="text-xs font-bold text-gray-500 dark:text-[#FFC8DD] max-w-md mx-auto leading-relaxed">
+                Awww... look at you! All caught up, organized, and stress-free. Time to treat yourself or add a new goal! ✨
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onOpenTaskModal && onOpenTaskModal(activeCategory === 'all' ? 'CURRICULAR' : activeCategory.toUpperCase())}
+              className="px-6 py-2.5 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-2xl shadow transition transform hover:scale-105 active:scale-95"
+            >
+              + Create New Task
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => onOpenTaskModal && onOpenTaskModal(activeCategory === 'all' ? 'CURRICULAR' : activeCategory.toUpperCase())}
-            className="px-6 py-2.5 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-2xl shadow transition transform hover:scale-105 active:scale-95"
-          >
-            + Create New Task
-          </button>
-        </div>
+        )
       ) : filteredTasks.length === 0 && isSearchActive ? (
         /* Empty State B: Search Query / Filter with no results */
         <div className="p-12 text-center bg-white dark:bg-[#1E142D] rounded-3xl border border-dashed border-gray-200 dark:border-[#332352] space-y-4 animate-scale-in">
@@ -251,6 +291,12 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
                   <div className="flex flex-wrap items-center gap-2">
                     {getCategoryBadge(t.task_type)}
                     {getPriorityBadge(t.priority)}
+                    {t.is_archived && (
+                      <span className="bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase flex items-center space-x-1">
+                        <Archive className="w-2.5 h-2.5" />
+                        <span>Archived</span>
+                      </span>
+                    )}
                     <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-[#120B1D] px-2.5 py-0.5 rounded flex items-center space-x-1">
                       <Clock className="w-3 h-3 text-gray-400" />
                       <span>{formatDueDateTime(t.due_date, t.due_time)}</span>
@@ -285,6 +331,54 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
 
                 <div className="flex items-center space-x-3 border-t md:border-t-0 pt-3 md:pt-0 border-gray-100 dark:border-[#332352]">
                   {getStatusButton(t)}
+
+                  {/* Archive button for completed unarchived tasks */}
+                  {t.status === 'COMPLETED' && !t.is_archived && canManage && (
+                    <button
+                      type="button"
+                      disabled={String(updatingTaskId) === String(t.id)}
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        setUpdatingTaskId(t.id);
+                        try {
+                          await archiveTask(t.id);
+                        } catch (error) {
+                          window.alert(error.message);
+                        } finally {
+                          setUpdatingTaskId(null);
+                        }
+                      }}
+                      title="Archive this finished task"
+                      className="px-3 py-1.5 rounded-xl font-extrabold text-xs flex items-center space-x-1.5 bg-purple-100 hover:bg-purple-200 text-purple-800 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800 transition transform hover:scale-105 active:scale-95 shadow-sm"
+                    >
+                      <Archive className="w-3.5 h-3.5" />
+                      <span>Archive</span>
+                    </button>
+                  )}
+
+                  {/* Restore button for archived tasks */}
+                  {t.is_archived && canManage && (
+                    <button
+                      type="button"
+                      disabled={String(updatingTaskId) === String(t.id)}
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        setUpdatingTaskId(t.id);
+                        try {
+                          await unarchiveTask(t.id);
+                        } catch (error) {
+                          window.alert(error.message);
+                        } finally {
+                          setUpdatingTaskId(null);
+                        }
+                      }}
+                      title="Restore task to active list"
+                      className="px-3 py-1.5 rounded-xl font-extrabold text-xs flex items-center space-x-1.5 bg-[#BDE0FE] hover:bg-[#A2D2FF] text-[#2B1B3D] dark:bg-blue-950/60 dark:hover:bg-blue-900/60 dark:text-blue-300 border border-[#A2D2FF] dark:border-blue-800 transition transform hover:scale-105 active:scale-95 shadow-sm"
+                    >
+                      <ArchiveRestore className="w-3.5 h-3.5" />
+                      <span>Restore</span>
+                    </button>
+                  )}
 
                   {canManage && (
                     <div className="flex items-center space-x-1 border-l border-gray-200 dark:border-[#332352] pl-2">

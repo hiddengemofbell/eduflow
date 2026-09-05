@@ -11,15 +11,15 @@ export default function UpcomingTasks({ onEditTask }) {
   const now = new Date();
 
   const overdueTasks = tasks.filter(t => {
-    if (!t.due_date || t.status === 'COMPLETED') return false;
+    if (!t.due_date || t.status === 'COMPLETED' || t.is_archived) return false;
     const due = parseLocalDate(t.due_date);
     return due < now && !t.due_date.startsWith(todayStr);
   });
 
-  const dueTodayTasks = tasks.filter(t => t.due_date && t.due_date.startsWith(todayStr) && t.status !== 'COMPLETED');
+  const dueTodayTasks = tasks.filter(t => t.due_date && t.due_date.startsWith(todayStr) && t.status !== 'COMPLETED' && !t.is_archived);
 
   const upcomingTasks = tasks.filter(t => {
-    if (!t.due_date || t.status === 'COMPLETED') return false;
+    if (!t.due_date || t.status === 'COMPLETED' || t.is_archived) return false;
     const due = parseLocalDate(t.due_date);
     return due > now && !t.due_date.startsWith(todayStr);
   });

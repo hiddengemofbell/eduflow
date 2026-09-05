@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, CheckSquare, GraduationCap, Compass, Users, Calendar, AlertCircle, User, Settings } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, GraduationCap, Compass, Users, Calendar, AlertCircle, User, Settings, Archive } from 'lucide-react';
 import { useTasks } from '../context/TaskContext';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
@@ -16,6 +16,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         { id: 'tasks-curricular', label: 'Curricular', icon: GraduationCap, count: stats.curricular },
         { id: 'tasks-extracurricular', label: 'Extracurricular', icon: Compass, count: stats.extracurricular },
         { id: 'tasks-org', label: 'Organization Tasks', icon: Users, count: stats.org },
+        { id: 'tasks-archived', label: 'Archived Tasks', icon: Archive, count: stats.archived },
       ]
     },
     { id: 'calendar', label: 'Calendar', icon: Calendar },
