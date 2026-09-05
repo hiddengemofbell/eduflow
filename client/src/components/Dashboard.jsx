@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import CustomSelect from './CustomSelect';
 import CustomDatePicker from './CustomDatePicker';
 import { toLocalDateString } from '../utils/dates';
-import { Quote, RefreshCw, CheckCircle2, Clock, AlertTriangle, Layers, Plus, Calendar as CalendarIcon, ArrowRight, WifiOff, Sparkles } from 'lucide-react';
+import { Quote, RefreshCw, CheckCircle2, Clock, AlertTriangle, Layers, Plus, Calendar as CalendarIcon, ArrowRight, WifiOff, Sparkles, Archive } from 'lucide-react';
 
 const STUDENT_QUOTES = [
   { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
@@ -18,7 +18,8 @@ const STUDENT_QUOTES = [
 
 export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
   const { user } = useAuth();
-  const { tasks, stats, dueTodayTasks, overdueTasks, addTask, updateTask, isOffline } = useTasks();
+  const { tasks, unarchivedTasks, stats, dueTodayTasks, overdueTasks, addTask, updateTask, archiveTask, isOffline } = useTasks();
+  const activeTasks = unarchivedTasks || tasks.filter(t => !t.is_archived);
 
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [quickTitle, setQuickTitle] = useState('');
@@ -271,7 +272,7 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
             </button>
           </div>
 
-          {tasks.length === 0 ? (
+          {activeTasks.length === 0 ? (
             <div className="p-8 text-center bg-gray-50 dark:bg-[#120B1D] rounded-2xl border border-dashed border-gray-200 dark:border-[#332352] space-y-2">
               <Sparkles className="w-6 h-6 text-[#FFC8DD] dark:text-[#FFAFCC] mx-auto animate-bounce" />
               <p className="text-xs font-bold text-[#2B1B3D] dark:text-white">Looks like there's no task left for this week... Well done! 🎉</p>
@@ -279,7 +280,7 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
             </div>
           ) : (
             <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
-              {tasks.slice(0, 6).map((t) => (
+              {activeTasks.slice(0, 6).map((t) => (
                 <div
                   key={t.id}
                   className="p-3.5 rounded-2xl border border-gray-100 dark:border-[#332352] bg-gray-50/50 dark:bg-[#160F24] hover:bg-white dark:hover:bg-[#1E142D] transition flex items-center justify-between"
@@ -289,8 +290,12 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        updateTask(t.id, { status: t.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' })
-                          .catch((error) => window.alert(error.message));
+                        const nextStatus = t.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
+                        const payload = { status: nextStatus };
+                        if (nextStatus !== 'COMPLETED') {
+                          payload.is_archived = false;
+                        }
+                        updateTask(t.id, payload).catch((error) => window.alert(error.message));
                       }}
                       className={`w-5 h-5 rounded-lg border flex items-center justify-center transition ${
                         t.status === 'COMPLETED'
@@ -318,13 +323,38 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
                     </div>
                   </div>
 
-                  <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase ${
-                    t.priority === 'HIGH' ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300' :
-                    t.priority === 'MEDIUM' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' :
-                    'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
-                  }`}>
-                    {t.priority}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    {t.status === 'COMPLETED' && !t.is_archived && (
+                      <button
+                        type="button"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            if (archiveTask) {
+                              await archiveTask(t.id);
+                            } else {
+                              await updateTask(t.id, { is_archived: true });
+                            }
+                          } catch (error) {
+                            window.alert(error.message);
+                          }
+                        }}
+                        title="Archive this finished task"
+                        className="px-2.5 py-1 rounded-lg font-bold text-[10px] flex items-center space-x-1 bg-purple-100 hover:bg-purple-200 text-purple-800 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800 transition transform hover:scale-105 active:scale-95 shadow-sm"
+                      >
+                        <Archive className="w-3 h-3" />
+                        <span>Archive</span>
+                      </button>
+                    )}
+
+                    <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase ${
+                      t.priority === 'HIGH' ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300' :
+                      t.priority === 'MEDIUM' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' :
+                      'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+                    }`}>
+                      {t.priority}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
