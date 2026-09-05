@@ -99,8 +99,12 @@ export default function App() {
 
   // Authenticated Student App Shell
   const handleOpenNewTask = (defaultCategory = 'CURRICULAR') => {
+    const validCategories = ['CURRICULAR', 'EXTRACURRICULAR', 'ORG'];
+    const sanitizedCategory = typeof defaultCategory === 'string' && validCategories.includes(defaultCategory.toUpperCase())
+      ? defaultCategory.toUpperCase()
+      : 'CURRICULAR';
     setTaskToEdit(null);
-    setTaskDefaultCategory(defaultCategory);
+    setTaskDefaultCategory(sanitizedCategory);
     setTaskModalOpen(true);
   };
 
@@ -112,15 +116,15 @@ export default function App() {
   const renderMainContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard onOpenTaskModal={handleOpenNewTask} setActiveTab={setActiveTab} />;
+        return <Dashboard onOpenTaskModal={() => handleOpenNewTask('CURRICULAR')} setActiveTab={setActiveTab} />;
       case 'tasks-all':
-        return <TaskViews activeCategory="all" onOpenTaskModal={handleOpenNewTask} onEditTask={handleEditTask} />;
+        return <TaskViews activeCategory="all" onOpenTaskModal={() => handleOpenNewTask('CURRICULAR')} onEditTask={handleEditTask} />;
       case 'tasks-curricular':
-        return <TaskViews activeCategory="curricular" onOpenTaskModal={handleOpenNewTask} onEditTask={handleEditTask} />;
+        return <TaskViews activeCategory="curricular" onOpenTaskModal={() => handleOpenNewTask('CURRICULAR')} onEditTask={handleEditTask} />;
       case 'tasks-extracurricular':
-        return <TaskViews activeCategory="extracurricular" onOpenTaskModal={handleOpenNewTask} onEditTask={handleEditTask} />;
+        return <TaskViews activeCategory="extracurricular" onOpenTaskModal={() => handleOpenNewTask('EXTRACURRICULAR')} onEditTask={handleEditTask} />;
       case 'tasks-org':
-        return <TaskViews activeCategory="org" onOpenTaskModal={handleOpenNewTask} onEditTask={handleEditTask} />;
+        return <TaskViews activeCategory="org" onOpenTaskModal={() => handleOpenNewTask('ORG')} onEditTask={handleEditTask} />;
       case 'calendar':
         return <CalendarView onEditTask={handleEditTask} />;
       case 'upcoming':
@@ -130,13 +134,13 @@ export default function App() {
       case 'account-org':
         return <OrganizationView onOpenTaskModal={() => handleOpenNewTask('ORG')} />;
       default:
-        return <Dashboard onOpenTaskModal={handleOpenNewTask} setActiveTab={setActiveTab} />;
+        return <Dashboard onOpenTaskModal={() => handleOpenNewTask('CURRICULAR')} setActiveTab={setActiveTab} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#120B1D] text-edu-dark dark:text-gray-100 flex flex-col font-sans transition-colors duration-300">
-      <Navbar onOpenTaskModal={handleOpenNewTask} />
+      <Navbar onOpenTaskModal={() => handleOpenNewTask('CURRICULAR')} />
 
       <div className="flex-1 max-w-7xl w-full mx-auto flex bg-gray-50 dark:bg-[#120B1D] transition-colors duration-300">
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />

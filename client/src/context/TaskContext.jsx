@@ -112,19 +112,33 @@ export const TaskProvider = ({ children }) => {
     fetchTasks();
   }, [fetchTasks]);
 
+  const cleanTaskPayload = (payload) => {
+    if (!payload || typeof payload !== 'object') return {};
+    const clean = {};
+    for (const [key, value] of Object.entries(payload)) {
+      if (value === null || value === undefined) {
+        clean[key] = value;
+      } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        clean[key] = value;
+      }
+    }
+    return clean;
+  };
+
   const addTask = async (taskData) => {
     if (isOffline) {
       throw new Error('You are offline. Connect to the internet before creating a task.');
     }
 
     try {
+      const sanitized = cleanTaskPayload(taskData);
       const res = await fetch('/api/tasks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(taskData)
+        body: JSON.stringify(sanitized)
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -144,10 +158,11 @@ export const TaskProvider = ({ children }) => {
 
   const updateTask = async (id, updateData) => {
     const stringId = String(id);
+    const sanitized = cleanTaskPayload(updateData);
     const previousTasks = tasks;
-    inFlightUpdatesRef.current.set(stringId, updateData);
+    inFlightUpdatesRef.current.set(stringId, sanitized);
 
-    setTasks(prev => prev.map(t => String(t.id) === stringId ? { ...t, ...updateData, updated_at: new Date().toISOString() } : t));
+    setTasks(prev => prev.map(t => String(t.id) === stringId ? { ...t, ...sanitized, updated_at: new Date().toISOString() } : t));
 
     if (isOffline) {
       inFlightUpdatesRef.current.delete(stringId);
@@ -162,7 +177,7 @@ export const TaskProvider = ({ children }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify(sanitized)
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

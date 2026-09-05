@@ -6,13 +6,20 @@ import CustomDatePicker from './CustomDatePicker';
 import { toLocalDateString } from '../utils/dates';
 import { X, UserCheck, Clock, Calendar, Tag, Flag, CheckCircle2, FileText, Sparkles } from 'lucide-react';
 
+const VALID_CATEGORIES = ['CURRICULAR', 'EXTRACURRICULAR', 'ORG'];
+const sanitizeCategory = (cat) => {
+  return typeof cat === 'string' && VALID_CATEGORIES.includes(cat.toUpperCase())
+    ? cat.toUpperCase()
+    : 'CURRICULAR';
+};
+
 export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultCategory = 'CURRICULAR' }) {
   const { addTask, updateTask } = useTasks();
   const { user, token } = useAuth();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [taskType, setTaskType] = useState(defaultCategory);
+  const [taskType, setTaskType] = useState(() => sanitizeCategory(defaultCategory));
   const [dueDate, setDueDate] = useState('');
   const [dueTime, setDueTime] = useState('');
   const [priority, setPriority] = useState('MEDIUM');
@@ -34,10 +41,11 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
   }, [user, token]);
 
   useEffect(() => {
+    const safeCat = sanitizeCategory(defaultCategory);
     if (taskToEdit) {
       setTitle(taskToEdit.title || '');
       setDescription(taskToEdit.description || '');
-      setTaskType(taskToEdit.task_type || defaultCategory);
+      setTaskType(taskToEdit.task_type ? sanitizeCategory(taskToEdit.task_type) : safeCat);
       setDueDate(taskToEdit.due_date ? taskToEdit.due_date.split('T')[0] : '');
       setDueTime(taskToEdit.due_time ? taskToEdit.due_time.slice(0, 5) : '');
       setPriority(taskToEdit.priority || 'MEDIUM');
@@ -46,7 +54,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
     } else {
       setTitle('');
       setDescription('');
-      setTaskType(defaultCategory);
+      setTaskType(safeCat);
       setDueDate(toLocalDateString());
       setDueTime('');
       setPriority('MEDIUM');
@@ -64,13 +72,13 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
 
     try {
       const payload = {
-        title,
-        description,
-        task_type: taskType,
+        title: title.trim(),
+        description: description ? description.trim() : '',
+        task_type: sanitizeCategory(taskType),
         due_date: dueDate,
         due_time: dueTime ? dueTime.trim() : null,
-        priority,
-        status,
+        priority: ['LOW', 'MEDIUM', 'HIGH'].includes(priority) ? priority : 'MEDIUM',
+        status: ['PENDING', 'IN_PROGRESS', 'COMPLETED'].includes(status) ? status : 'PENDING',
         assigned_to: assignedTo ? parseInt(assignedTo, 10) : null
       };
 

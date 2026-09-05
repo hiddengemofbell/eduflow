@@ -193,7 +193,8 @@ export default function OrganizationView({ onOpenTaskModal }) {
             </p>
           </div>
           <button
-            onClick={onOpenTaskModal}
+            type="button"
+            onClick={() => onOpenTaskModal && onOpenTaskModal('ORG')}
             className="px-4 py-2 bg-edu-dark dark:bg-edu-accent text-white dark:text-edu-dark font-bold text-xs rounded-xl shadow hover:bg-opacity-90 transition flex items-center space-x-1.5"
           >
             <Plus className="w-4 h-4 text-edu-accent dark:text-edu-dark" />

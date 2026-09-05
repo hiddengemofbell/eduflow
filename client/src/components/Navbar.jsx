@@ -88,7 +88,8 @@ export default function Navbar({ onOpenTaskModal }) {
 
           {/* Quick New Task Button */}
           <button
-            onClick={onOpenTaskModal}
+            type="button"
+            onClick={() => onOpenTaskModal && onOpenTaskModal('CURRICULAR')}
             className="flex items-center space-x-1.5 px-4 py-2 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-xl shadow transition transform active:scale-95"
           >
             <Plus className="w-4 h-4" />

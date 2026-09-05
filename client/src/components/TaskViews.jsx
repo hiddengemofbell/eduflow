@@ -143,7 +143,8 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
         </div>
 
         <button
-          onClick={onOpenTaskModal}
+          type="button"
+          onClick={() => onOpenTaskModal && onOpenTaskModal(activeCategory === 'all' ? 'CURRICULAR' : activeCategory.toUpperCase())}
           className="flex items-center justify-center space-x-2 px-5 py-2.5 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-2xl shadow transition transform active:scale-95"
         >
           <Plus className="w-4 h-4" />
@@ -206,7 +207,8 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
             </p>
           </div>
           <button
-            onClick={onOpenTaskModal}
+            type="button"
+            onClick={() => onOpenTaskModal && onOpenTaskModal(activeCategory === 'all' ? 'CURRICULAR' : activeCategory.toUpperCase())}
             className="px-6 py-2.5 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-2xl shadow transition transform hover:scale-105 active:scale-95"
           >
             + Create New Task
