@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTasks } from '../context/TaskContext';
+import { useTasks, isTaskArchived } from '../context/TaskContext';
 import { useAuth } from '../context/AuthContext';
 import CustomSelect from './CustomSelect';
 import CustomDatePicker from './CustomDatePicker';
@@ -30,13 +30,16 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Fetch org members if org admin
   useEffect(() => {
-    if (user?.account_type === 'ORG_ADMIN' && user?.organization_id && token) {
-      fetch('/api/organizations/members', {
+    if (user && user.account_type === 'ORG_ADMIN' && user.organization_id) {
+      fetch('/api/organizations/my-org', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
         .then(res => res.json())
-        .then(data => setOrgMembers(data.members || []))
+        .then(data => {
+          if (data.members) setOrgMembers(data.members);
+        })
         .catch(err => console.error('Error loading members:', err));
     }
   }, [user, token]);
@@ -51,7 +54,7 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
       setDueTime(taskToEdit.due_time ? taskToEdit.due_time.slice(0, 5) : '');
       setPriority(taskToEdit.priority || 'MEDIUM');
       setStatus(taskToEdit.status || 'PENDING');
-      setIsArchived(Boolean(taskToEdit.is_archived));
+      setIsArchived(isTaskArchived(taskToEdit));
       setAssignedTo(taskToEdit.assigned_to || '');
     } else {
       setTitle('');

@@ -1,6 +1,21 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { normalizeDate, validDate, formatTask } = require('../routes/tasks');
+const { normalizeDate, validDate, formatTask, isTruthyArchived } = require('../routes/tasks');
+
+test('isTruthyArchived correctly identifies archived truthy and falsy values', () => {
+  assert.equal(isTruthyArchived(true), true);
+  assert.equal(isTruthyArchived(1), true);
+  assert.equal(isTruthyArchived('true'), true);
+  assert.equal(isTruthyArchived('1'), true);
+  assert.equal(isTruthyArchived('t'), true);
+
+  assert.equal(isTruthyArchived(false), false);
+  assert.equal(isTruthyArchived(0), false);
+  assert.equal(isTruthyArchived('false'), false);
+  assert.equal(isTruthyArchived('0'), false);
+  assert.equal(isTruthyArchived(null), false);
+  assert.equal(isTruthyArchived(undefined), false);
+});
 
 test('normalizeDate extracts YYYY-MM-DD from various date formats', () => {
   assert.equal(normalizeDate('2026-09-05'), '2026-09-05');
@@ -25,7 +40,7 @@ test('validDate validates YYYY-MM-DD strings, ISO strings, and Date objects', ()
   assert.equal(validDate(undefined), false);
 });
 
-test('formatTask ensures due_date is formatted as YYYY-MM-DD', () => {
+test('formatTask ensures due_date is formatted as YYYY-MM-DD and is_archived is boolean', () => {
   const taskWithIso = {
     id: 1,
     title: 'Spade',
@@ -42,18 +57,28 @@ test('formatTask ensures due_date is formatted as YYYY-MM-DD', () => {
     title: 'Test',
     due_date: new Date('2026-09-05T00:00:00.000Z'),
     status: 'COMPLETED',
-    is_archived: true
+    is_archived: 1
   };
   const formatted2 = formatTask(taskWithDateObj);
   assert.equal(formatted2.due_date, '2026-09-05');
   assert.equal(formatted2.is_archived, true);
 
-  const taskWithoutArchived = {
+  const taskWithStringArchived = {
     id: 3,
+    title: 'String true',
+    due_date: '2026-09-05',
+    status: 'COMPLETED',
+    is_archived: 'true'
+  };
+  const formatted3 = formatTask(taskWithStringArchived);
+  assert.equal(formatted3.is_archived, true);
+
+  const taskWithoutArchived = {
+    id: 4,
     title: 'No archived flag',
     due_date: '2026-09-05',
     status: 'PENDING'
   };
-  const formatted3 = formatTask(taskWithoutArchived);
-  assert.equal(formatted3.is_archived, false);
+  const formatted4 = formatTask(taskWithoutArchived);
+  assert.equal(formatted4.is_archived, false);
 });

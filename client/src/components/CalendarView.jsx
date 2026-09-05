@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useTasks, formatDueDateTime } from '../context/TaskContext';
+import { useTasks, formatDueDateTime, isTaskArchived } from '../context/TaskContext';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Filter, X, Clock } from 'lucide-react';
 
 export default function CalendarView({ onEditTask }) {
-  const { tasks } = useTasks();
+  const { tasks, unarchivedTasks } = useTasks();
+  const calendarTasks = unarchivedTasks || (tasks ? tasks.filter(t => !isTaskArchived(t)) : []);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('month');
@@ -71,8 +72,8 @@ export default function CalendarView({ onEditTask }) {
     );
   };
 
-  const visibleTasks = tasks.filter(t => {
-    if (t.is_archived) return false;
+  const visibleTasks = calendarTasks.filter(t => {
+    if (isTaskArchived(t)) return false;
     if (t.task_type === 'CURRICULAR' && !showCurricular) return false;
     if (t.task_type === 'EXTRACURRICULAR' && !showExtracurricular) return false;
     if (t.task_type === 'ORG' && !showOrg) return false;
@@ -409,7 +410,7 @@ export default function CalendarView({ onEditTask }) {
       </div>
 
       {/* Task Details Modal */}
-      {selectedTask && (
+      {selectedTask && !isTaskArchived(selectedTask) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-edu-dark/60 dark:bg-black/80 backdrop-blur-sm p-3 sm:p-4 animate-fade-in">
           <div className="bg-white dark:bg-[#1E142D] w-full max-w-md max-h-[92vh] flex flex-col rounded-3xl shadow-2xl border border-gray-200 dark:border-[#332352] overflow-hidden animate-scale-in">
             <div className="bg-gradient-to-r from-[#CDB4DB]/40 via-[#FFC8DD]/40 to-[#BDE0FE]/40 dark:from-[#2B1B3D] dark:to-[#382550] p-4 sm:p-6 relative shrink-0">

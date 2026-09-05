@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTasks, formatDueDateTime } from '../context/TaskContext';
+import { useTasks, formatDueDateTime, isTaskArchived } from '../context/TaskContext';
 import { useAuth } from '../context/AuthContext';
 import CustomSelect from './CustomSelect';
 import { Search, Filter, Plus, Edit2, Trash2, CheckCircle2, Clock, Building, User, Sparkles, RefreshCw, Archive, ArchiveRestore } from 'lucide-react';
@@ -18,10 +18,10 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
   const filteredTasks = tasks.filter(t => {
     // If viewing archived category, only show archived tasks
     if (isArchivedView) {
-      if (!t.is_archived) return false;
+      if (!isTaskArchived(t)) return false;
     } else {
       // In all other views (all, curricular, extracurricular, org), only show unarchived tasks
-      if (t.is_archived) return false;
+      if (isTaskArchived(t)) return false;
     }
 
     if (activeCategory === 'curricular' && t.task_type !== 'CURRICULAR') return false;
@@ -138,8 +138,8 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
 
   const isSearchActive = searchQuery.trim() !== '' || priorityFilter !== 'ALL' || statusFilter !== 'ALL';
   const isTotalCategoryEmpty = tasks.filter(t => {
-    if (isArchivedView) return Boolean(t.is_archived);
-    if (t.is_archived) return false;
+    if (isArchivedView) return isTaskArchived(t);
+    if (isTaskArchived(t)) return false;
     if (activeCategory === 'curricular') return t.task_type === 'CURRICULAR';
     if (activeCategory === 'extracurricular') return t.task_type === 'EXTRACURRICULAR';
     if (activeCategory === 'org') return t.task_type === 'ORG';
@@ -291,7 +291,7 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
                   <div className="flex flex-wrap items-center gap-2">
                     {getCategoryBadge(t.task_type)}
                     {getPriorityBadge(t.priority)}
-                    {t.is_archived && (
+                    {isTaskArchived(t) && (
                       <span className="bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase flex items-center space-x-1">
                         <Archive className="w-2.5 h-2.5" />
                         <span>Archived</span>
@@ -333,7 +333,7 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
                   {getStatusButton(t)}
 
                   {/* Archive button for completed unarchived tasks */}
-                  {t.status === 'COMPLETED' && !t.is_archived && canManage && (
+                  {t.status === 'COMPLETED' && !isTaskArchived(t) && canManage && (
                     <button
                       type="button"
                       disabled={String(updatingTaskId) === String(t.id)}
@@ -357,7 +357,7 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
                   )}
 
                   {/* Restore button for archived tasks */}
-                  {t.is_archived && canManage && (
+                  {isTaskArchived(t) && canManage && (
                     <button
                       type="button"
                       disabled={String(updatingTaskId) === String(t.id)}

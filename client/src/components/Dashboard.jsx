@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTasks } from '../context/TaskContext';
+import { useTasks, isTaskArchived } from '../context/TaskContext';
 import { useAuth } from '../context/AuthContext';
 import CustomSelect from './CustomSelect';
 import CustomDatePicker from './CustomDatePicker';
@@ -19,7 +19,7 @@ const STUDENT_QUOTES = [
 export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
   const { user } = useAuth();
   const { tasks, unarchivedTasks, stats, dueTodayTasks, overdueTasks, addTask, updateTask, archiveTask, isOffline } = useTasks();
-  const activeTasks = unarchivedTasks || tasks.filter(t => !t.is_archived);
+  const activeTasks = (unarchivedTasks || tasks || []).filter(t => !isTaskArchived(t));
 
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [quickTitle, setQuickTitle] = useState('');

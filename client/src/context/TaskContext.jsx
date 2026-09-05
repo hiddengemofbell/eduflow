@@ -4,6 +4,12 @@ import { parseLocalDate } from '../utils/dates';
 
 const TaskContext = createContext();
 
+export const isTaskArchived = (task) => {
+  if (!task) return false;
+  const val = task.is_archived;
+  return val === true || val === 1 || val === 'true' || val === 't' || val === '1';
+};
+
 export const formatDueDateTime = (dueDate, dueTime) => {
   if (!dueDate) return '';
   const dateStr = typeof dueDate === 'string' && dueDate.includes('T') ? dueDate.split('T')[0] : String(dueDate);
@@ -52,7 +58,7 @@ export const TaskProvider = ({ children }) => {
     try {
       const cached = localStorage.getItem(`eduflow_offline_tasks:${userId}`);
       const parsed = cached ? JSON.parse(cached) : [];
-      setTasks(Array.isArray(parsed) ? parsed : []);
+      setTasks(Array.isArray(parsed) ? parsed.map(t => ({ ...t, is_archived: isTaskArchived(t) })) : []);
     } catch (error) {
       console.warn('Ignoring an invalid offline task cache.', error);
       localStorage.removeItem(`eduflow_offline_tasks:${userId}`);
@@ -83,12 +89,13 @@ export const TaskProvider = ({ children }) => {
       });
       if (res.ok) {
         const data = await res.json();
-        const serverTasks = Array.isArray(data.tasks) ? data.tasks : [];
+        const serverTasks = Array.isArray(data.tasks) ? data.tasks.map(t => ({ ...t, is_archived: isTaskArchived(t) })) : [];
         setTasks(prevTasks => {
           return serverTasks.map(serverTask => {
             const pending = inFlightUpdatesRef.current.get(String(serverTask.id));
             if (pending) {
-              return { ...serverTask, ...pending };
+              const merged = { ...serverTask, ...pending };
+              return { ...merged, is_archived: isTaskArchived(merged) };
             }
             return serverTask;
           });
@@ -145,7 +152,8 @@ export const TaskProvider = ({ children }) => {
         throw new Error(data.message || 'Failed to create task.');
       }
       if (data.task) {
-        setTasks(prev => [data.task, ...prev]);
+        const formatted = { ...data.task, is_archived: isTaskArchived(data.task) };
+        setTasks(prev => [formatted, ...prev]);
       } else {
         await fetchTasks({ silent: true });
       }
@@ -159,10 +167,19 @@ export const TaskProvider = ({ children }) => {
   const updateTask = async (id, updateData) => {
     const stringId = String(id);
     const sanitized = cleanTaskPayload(updateData);
+    if (sanitized.is_archived !== undefined) {
+      sanitized.is_archived = isTaskArchived(sanitized);
+    }
     const previousTasks = tasks;
     inFlightUpdatesRef.current.set(stringId, sanitized);
 
-    setTasks(prev => prev.map(t => String(t.id) === stringId ? { ...t, ...sanitized, updated_at: new Date().toISOString() } : t));
+    setTasks(prev => prev.map(t => {
+      if (String(t.id) === stringId) {
+        const merged = { ...t, ...sanitized, updated_at: new Date().toISOString() };
+        return { ...merged, is_archived: isTaskArchived(merged) };
+      }
+      return t;
+    }));
 
     if (isOffline) {
       inFlightUpdatesRef.current.delete(stringId);
@@ -184,7 +201,8 @@ export const TaskProvider = ({ children }) => {
         throw new Error(data.message || 'Failed to update task.');
       }
       if (data.task) {
-        setTasks(prev => prev.map(t => String(t.id) === stringId ? data.task : t));
+        const formatted = { ...data.task, is_archived: isTaskArchived(data.task) };
+        setTasks(prev => prev.map(t => String(t.id) === stringId ? formatted : t));
       } else {
         await fetchTasks({ silent: true });
       }
@@ -248,8 +266,8 @@ export const TaskProvider = ({ children }) => {
     return updateTask(id, { is_archived: false });
   };
 
-  const unarchivedTasks = tasks.filter(t => !t.is_archived);
-  const archivedTasks = tasks.filter(t => Boolean(t.is_archived));
+  const unarchivedTasks = tasks.filter(t => !isTaskArchived(t));
+  const archivedTasks = tasks.filter(t => isTaskArchived(t));
 
   const dueTodayTasks = unarchivedTasks.filter(t => isDueToday(t.due_date) && t.status !== 'COMPLETED');
   const overdueTasks = unarchivedTasks.filter(t => isOverdue(t.due_date, t.status));
@@ -272,6 +290,7 @@ export const TaskProvider = ({ children }) => {
       tasks,
       unarchivedTasks,
       archivedTasks,
+      isTaskArchived,
       loading,
       error,
       stats,

@@ -41,12 +41,14 @@ const parseOptionalUserId = (value) => {
   return parseTaskId(value);
 };
 
+const isTruthyArchived = (value) => value === true || value === 1 || value === 'true' || value === '1' || value === 't';
+
 const formatTask = (task) => {
   if (!task) return task;
   return {
     ...task,
     due_date: normalizeDate(task.due_date),
-    is_archived: Boolean(task.is_archived)
+    is_archived: isTruthyArchived(task.is_archived)
   };
 };
 
@@ -184,8 +186,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
         return res.status(400).json({ message: 'Invalid status value.' });
       }
 
-      let is_archived = req.body.is_archived !== undefined ? Boolean(req.body.is_archived) : Boolean(task.is_archived);
-      if (req.body.is_archived === true && status !== 'COMPLETED') {
+      let is_archived = req.body.is_archived !== undefined ? isTruthyArchived(req.body.is_archived) : isTruthyArchived(task.is_archived);
+      if (req.body.is_archived !== undefined && isTruthyArchived(req.body.is_archived) && status !== 'COMPLETED') {
         return res.status(400).json({ message: 'Only completed tasks can be archived.' });
       }
       if (status !== 'COMPLETED') {
@@ -207,8 +209,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
       const requestedAssignee = req.body.assigned_to !== undefined ? req.body.assigned_to : task.assigned_to;
       const assigned_to = parseOptionalUserId(requestedAssignee);
 
-      let is_archived = req.body.is_archived !== undefined ? Boolean(req.body.is_archived) : Boolean(task.is_archived);
-      if (req.body.is_archived === true && status !== 'COMPLETED') {
+      let is_archived = req.body.is_archived !== undefined ? isTruthyArchived(req.body.is_archived) : isTruthyArchived(task.is_archived);
+      if (req.body.is_archived !== undefined && isTruthyArchived(req.body.is_archived) && status !== 'COMPLETED') {
         return res.status(400).json({ message: 'Only completed tasks can be archived.' });
       }
       if (status !== 'COMPLETED') {
@@ -291,5 +293,6 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 router.normalizeDate = normalizeDate;
 router.validDate = validDate;
 router.formatTask = formatTask;
+router.isTruthyArchived = isTruthyArchived;
 
 module.exports = router;

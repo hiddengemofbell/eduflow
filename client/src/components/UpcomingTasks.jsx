@@ -1,25 +1,26 @@
 import React, { useState } from 'react';
-import { useTasks, formatDueDateTime } from '../context/TaskContext';
+import { useTasks, formatDueDateTime, isTaskArchived } from '../context/TaskContext';
 import { parseLocalDate, toLocalDateString } from '../utils/dates';
 import { AlertCircle, Clock, Calendar, CheckCircle2, ArrowUpDown } from 'lucide-react';
 
 export default function UpcomingTasks({ onEditTask }) {
-  const { tasks, updateTask } = useTasks();
+  const { tasks, unarchivedTasks, updateTask } = useTasks();
   const [sortBy, setSortBy] = useState('date');
 
   const todayStr = toLocalDateString();
   const now = new Date();
+  const activeTasks = unarchivedTasks || (tasks ? tasks.filter(t => !isTaskArchived(t)) : []);
 
-  const overdueTasks = tasks.filter(t => {
-    if (!t.due_date || t.status === 'COMPLETED' || t.is_archived) return false;
+  const overdueTasks = activeTasks.filter(t => {
+    if (!t.due_date || t.status === 'COMPLETED' || isTaskArchived(t)) return false;
     const due = parseLocalDate(t.due_date);
     return due < now && !t.due_date.startsWith(todayStr);
   });
 
-  const dueTodayTasks = tasks.filter(t => t.due_date && t.due_date.startsWith(todayStr) && t.status !== 'COMPLETED' && !t.is_archived);
+  const dueTodayTasks = activeTasks.filter(t => t.due_date && t.due_date.startsWith(todayStr) && t.status !== 'COMPLETED' && !isTaskArchived(t));
 
-  const upcomingTasks = tasks.filter(t => {
-    if (!t.due_date || t.status === 'COMPLETED' || t.is_archived) return false;
+  const upcomingTasks = activeTasks.filter(t => {
+    if (!t.due_date || t.status === 'COMPLETED' || isTaskArchived(t)) return false;
     const due = parseLocalDate(t.due_date);
     return due > now && !t.due_date.startsWith(todayStr);
   });
