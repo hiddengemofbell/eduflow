@@ -11,14 +11,14 @@ export default function ProfileView() {
   return (
     <div className="space-y-8 max-w-4xl mx-auto animate-slide-up">
       {/* Header */}
-      <div className="bg-white dark:bg-edu-darkCard p-8 rounded-3xl border border-gray-200 dark:border-edu-darkBorder shadow-sm flex items-center space-x-6">
-        <div className="w-20 h-20 rounded-3xl bg-edu-card dark:bg-edu-darkBorder text-edu-dark dark:text-white font-black text-3xl flex items-center justify-center border-2 border-white dark:border-edu-darkBorder shadow-lg">
+      <div className="bg-white dark:bg-edu-darkCard p-5 sm:p-8 rounded-3xl border border-gray-200 dark:border-edu-darkBorder shadow-sm flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-6">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-edu-card dark:bg-edu-darkBorder text-edu-dark dark:text-white font-black text-2xl sm:text-3xl flex items-center justify-center border-2 border-white dark:border-edu-darkBorder shadow-lg shrink-0">
           {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
         </div>
-        <div>
-          <h1 className="text-2xl font-black text-edu-dark dark:text-white">{user?.name}</h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{user?.email}</p>
-          <div className="flex items-center space-x-2 mt-2">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-black text-edu-dark dark:text-white truncate">{user?.name}</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate">{user?.email}</p>
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
             <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-edu-dark dark:bg-edu-accent text-white dark:text-edu-dark">
               {user?.account_type === 'ORG_ADMIN' ? 'Organization Admin' : user?.account_type === 'ORG_MEMBER' ? 'Organization Member' : 'Individual Student'}
             </span>

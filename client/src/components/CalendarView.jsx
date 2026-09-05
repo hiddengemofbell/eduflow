@@ -63,13 +63,13 @@ export default function CalendarView({ onEditTask }) {
   return (
     <div className="space-y-6 animate-slide-up">
       {/* Calendar Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#1E142D] p-6 rounded-3xl border border-gray-200 dark:border-[#332352] shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#1E142D] p-4 sm:p-6 rounded-3xl border border-gray-200 dark:border-[#332352] shadow-sm">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#2B1B3D] dark:bg-[#FFC8DD] text-white dark:text-[#2B1B3D] flex items-center justify-center shadow font-bold">
+          <div className="w-10 h-10 rounded-2xl bg-[#2B1B3D] dark:bg-[#FFC8DD] text-white dark:text-[#2B1B3D] flex items-center justify-center shadow font-bold shrink-0">
             <CalendarIcon className="w-5 h-5 text-[#FFC8DD] dark:text-[#2B1B3D]" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-[#2B1B3D] dark:text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-[#2B1B3D] dark:text-white tracking-tight">
               {monthNames[month]} {year}
             </h1>
             <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -79,7 +79,7 @@ export default function CalendarView({ onEditTask }) {
         </div>
 
         {/* View Switcher & Controls */}
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2 sm:space-x-3">
           <div className="flex bg-gray-100 dark:bg-[#120B1D] p-1 rounded-xl">
             <button
               onClick={() => setViewMode('month')}
@@ -99,22 +99,22 @@ export default function CalendarView({ onEditTask }) {
             </button>
           </div>
 
-          <div className="flex items-center space-x-1 border-l border-gray-200 dark:border-[#332352] pl-3">
+          <div className="flex items-center space-x-1 border-l border-gray-200 dark:border-[#332352] pl-2 sm:pl-3">
             <button
               onClick={prevPeriod}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-[#332352] rounded-xl transition text-[#2B1B3D] dark:text-white"
+              className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-[#332352] rounded-xl transition text-[#2B1B3D] dark:text-white"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={() => setCurrentDate(new Date())}
-              className="px-3 py-1.5 text-xs font-bold bg-[#BDE0FE]/40 dark:bg-[#332352] text-[#2B1B3D] dark:text-white hover:bg-[#BDE0FE] rounded-xl transition"
+              className="px-2.5 sm:px-3 py-1.5 text-xs font-bold bg-[#BDE0FE]/40 dark:bg-[#332352] text-[#2B1B3D] dark:text-white hover:bg-[#BDE0FE] rounded-xl transition"
             >
               Today
             </button>
             <button
               onClick={nextPeriod}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-[#332352] rounded-xl transition text-[#2B1B3D] dark:text-white"
+              className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-[#332352] rounded-xl transition text-[#2B1B3D] dark:text-white"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -123,7 +123,7 @@ export default function CalendarView({ onEditTask }) {
       </div>
 
       {/* Filter Checkboxes */}
-      <div className="bg-white dark:bg-[#1E142D] p-4 rounded-2xl border border-gray-200 dark:border-[#332352] shadow-sm flex flex-wrap items-center gap-6">
+      <div className="bg-white dark:bg-[#1E142D] p-3.5 sm:p-4 rounded-2xl border border-gray-200 dark:border-[#332352] shadow-sm flex flex-wrap items-center gap-3 sm:gap-6">
         <div className="flex items-center space-x-2 text-xs font-bold text-gray-500 dark:text-gray-400">
           <Filter className="w-4 h-4" />
           <span>Category Filter:</span>
@@ -161,18 +161,20 @@ export default function CalendarView({ onEditTask }) {
       </div>
 
       {/* Grid View */}
-      <div className="bg-white dark:bg-[#1E142D] rounded-3xl border border-gray-200 dark:border-[#332352] shadow-sm overflow-hidden p-4">
-        <div className="grid grid-cols-7 gap-2 text-center pb-3 border-b border-gray-100 dark:border-[#332352] font-extrabold text-xs text-gray-400 dark:text-gray-400 uppercase tracking-wider">
-          <div>Sun</div>
-          <div>Mon</div>
-          <div>Tue</div>
-          <div>Wed</div>
-          <div>Thu</div>
-          <div>Fri</div>
-          <div>Sat</div>
-        </div>
+      <div className="bg-white dark:bg-[#1E142D] rounded-3xl border border-gray-200 dark:border-[#332352] shadow-sm p-3.5 sm:p-4 overflow-hidden">
+        <div className="overflow-x-auto">
+          <div className="min-w-[600px] sm:min-w-0">
+            <div className="grid grid-cols-7 gap-2 text-center pb-3 border-b border-gray-100 dark:border-[#332352] font-extrabold text-xs text-gray-400 dark:text-gray-400 uppercase tracking-wider">
+              <div>Sun</div>
+              <div>Mon</div>
+              <div>Tue</div>
+              <div>Wed</div>
+              <div>Thu</div>
+              <div>Fri</div>
+              <div>Sat</div>
+            </div>
 
-        <div className="grid grid-cols-7 gap-2 pt-2">
+            <div className="grid grid-cols-7 gap-2 pt-2">
           {Array.from({ length: firstDayOfMonth }).map((_, i) => (
             <div key={`empty-${i}`} className="min-h-[100px] bg-gray-50/40 dark:bg-[#120B1D]/30 rounded-2xl p-2" />
           ))}
@@ -225,29 +227,32 @@ export default function CalendarView({ onEditTask }) {
               </div>
             );
           })}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Task Details Modal */}
       {selectedTask && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-edu-dark/60 dark:bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white dark:bg-[#1E142D] w-full max-w-md rounded-3xl shadow-2xl border border-gray-200 dark:border-[#332352] overflow-hidden animate-scale-in">
-            <div className="bg-gradient-to-r from-[#CDB4DB]/40 via-[#FFC8DD]/40 to-[#BDE0FE]/40 dark:from-[#2B1B3D] dark:to-[#382550] p-6 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-edu-dark/60 dark:bg-black/80 backdrop-blur-sm p-3 sm:p-4 animate-fade-in">
+          <div className="bg-white dark:bg-[#1E142D] w-full max-w-md max-h-[92vh] flex flex-col rounded-3xl shadow-2xl border border-gray-200 dark:border-[#332352] overflow-hidden animate-scale-in">
+            <div className="bg-gradient-to-r from-[#CDB4DB]/40 via-[#FFC8DD]/40 to-[#BDE0FE]/40 dark:from-[#2B1B3D] dark:to-[#382550] p-4 sm:p-6 relative shrink-0">
               <button
                 onClick={() => setSelectedTask(null)}
                 className="absolute top-4 right-4 text-[#2B1B3D] dark:text-gray-300 bg-white/60 dark:bg-[#332352] p-1.5 rounded-full"
+                aria-label="Close task details"
               >
                 <X className="w-5 h-5" />
               </button>
               <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase bg-[#2B1B3D] dark:bg-[#FFC8DD] text-white dark:text-[#2B1B3D]">
                 {selectedTask.task_type}
               </span>
-              <h3 className="text-xl font-black text-[#2B1B3D] dark:text-white mt-2">{selectedTask.title}</h3>
+              <h3 className="text-lg sm:text-xl font-black text-[#2B1B3D] dark:text-white mt-2 break-words">{selectedTask.title}</h3>
             </div>
 
-            <div className="p-6 space-y-4 text-xs font-medium text-gray-600 dark:text-gray-300">
+            <div className="p-4 sm:p-6 space-y-4 text-xs font-medium text-gray-600 dark:text-gray-300 overflow-y-auto flex-1">
               {selectedTask.description ? (
-                <p className="bg-gray-50 dark:bg-[#120B1D] p-3 rounded-xl border border-gray-100 dark:border-[#332352] text-[#2B1B3D] dark:text-white">
+                <p className="bg-gray-50 dark:bg-[#120B1D] p-3 rounded-xl border border-gray-100 dark:border-[#332352] text-[#2B1B3D] dark:text-white break-words">
                   {selectedTask.description}
                 </p>
               ) : (

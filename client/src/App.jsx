@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LayoutDashboard, CheckSquare, Calendar, Plus, Menu } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import LandingPage from './components/LandingPage';
 import AuthModal from './components/AuthModal';
@@ -31,6 +32,7 @@ export default function App() {
 
   // Navigation State
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Auth Modal State
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -142,11 +144,19 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#120B1D] text-edu-dark dark:text-gray-100 flex flex-col font-sans transition-colors duration-300">
-      <Navbar onOpenTaskModal={() => handleOpenNewTask('CURRICULAR')} />
+      <Navbar
+        onOpenTaskModal={() => handleOpenNewTask('CURRICULAR')}
+        onToggleMobileMenu={() => setMobileMenuOpen(prev => !prev)}
+      />
 
       <div className="flex-1 max-w-7xl w-full mx-auto flex bg-gray-50 dark:bg-[#120B1D] transition-colors duration-300">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto bg-gray-50 dark:bg-[#120B1D] transition-colors duration-300">
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          mobileOpen={mobileMenuOpen}
+          onCloseMobileMenu={() => setMobileMenuOpen(false)}
+        />
+        <main className="flex-1 p-3.5 sm:p-6 md:p-8 min-w-0 pb-24 lg:pb-8 overflow-y-auto bg-gray-50 dark:bg-[#120B1D] transition-colors duration-300">
           {welcomeUserId === authUserId && (
             <WelcomeBanner
               name={user?.name}
@@ -160,6 +170,78 @@ export default function App() {
           {renderMainContent()}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav
+        aria-label="Mobile navigation"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#1E142D]/95 backdrop-blur-lg border-t border-gray-200 dark:border-[#332352] px-2 py-1.5 flex items-center justify-around shadow-lg"
+      >
+        <button
+          type="button"
+          onClick={() => setActiveTab('dashboard')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition ${
+            activeTab === 'dashboard'
+              ? 'text-[#2B1B3D] dark:text-[#FFAFCC] font-extrabold'
+              : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-medium'
+          }`}
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          <span className="text-[10px] mt-0.5">Dashboard</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('tasks-all')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition ${
+            activeTab.startsWith('tasks')
+              ? 'text-[#2B1B3D] dark:text-[#FFAFCC] font-extrabold'
+              : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-medium'
+          }`}
+        >
+          <CheckSquare className="w-5 h-5" />
+          <span className="text-[10px] mt-0.5">Tasks</span>
+        </button>
+
+        {/* Center Quick Add Action Button */}
+        <button
+          type="button"
+          onClick={() => handleOpenNewTask('CURRICULAR')}
+          className="flex flex-col items-center justify-center -mt-5"
+          aria-label="Create new task"
+        >
+          <div className="w-11 h-11 rounded-full bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] shadow-lg flex items-center justify-center transition transform active:scale-95 border-2 border-white dark:border-[#1E142D]">
+            <Plus className="w-6 h-6 stroke-[2.5]" />
+          </div>
+          <span className="text-[10px] font-extrabold text-[#2B1B3D] dark:text-[#FFC8DD] mt-0.5">New</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('calendar')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition ${
+            activeTab === 'calendar'
+              ? 'text-[#2B1B3D] dark:text-[#FFAFCC] font-extrabold'
+              : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-medium'
+          }`}
+        >
+          <Calendar className="w-5 h-5" />
+          <span className="text-[10px] mt-0.5">Calendar</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(true)}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition ${
+            mobileMenuOpen
+              ? 'text-[#2B1B3D] dark:text-[#FFAFCC] font-extrabold'
+              : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-medium'
+          }`}
+          aria-label="Open full menu"
+        >
+          <Menu className="w-5 h-5" />
+          <span className="text-[10px] mt-0.5">Menu</span>
+        </button>
+      </nav>
 
       <TaskModal
         isOpen={taskModalOpen}

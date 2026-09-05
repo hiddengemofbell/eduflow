@@ -42,13 +42,13 @@ export default function UpcomingTasks({ onEditTask }) {
   const renderTaskCard = (t, isOverdue = false) => (
     <div
       key={t.id}
-      className={`p-4 rounded-2xl border transition flex items-center justify-between gap-4 hover:-translate-y-0.5 ${
+      className={`p-3.5 sm:p-4 rounded-2xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:-translate-y-0.5 ${
         isOverdue
           ? 'bg-red-50/60 dark:bg-red-950/40 border-red-200 dark:border-red-900'
           : 'bg-white dark:bg-[#1E142D] border-gray-200 dark:border-[#332352] hover:border-[#CDB4DB]'
       }`}
     >
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
         <button
           type="button"
           onClick={(e) => {
@@ -56,7 +56,7 @@ export default function UpcomingTasks({ onEditTask }) {
             updateTask(t.id, { status: t.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' })
               .catch((error) => window.alert(error.message));
           }}
-          className={`w-5 h-5 rounded-lg border flex items-center justify-center transition ${
+          className={`w-5 h-5 rounded-lg border flex items-center justify-center transition shrink-0 ${
             t.status === 'COMPLETED'
               ? 'bg-emerald-500 border-emerald-500 text-white'
               : 'border-gray-300 dark:border-gray-600 hover:border-[#2B1B3D] bg-white dark:bg-[#120B1D]'
@@ -65,10 +65,10 @@ export default function UpcomingTasks({ onEditTask }) {
           {t.status === 'COMPLETED' && <CheckCircle2 className="w-3.5 h-3.5" />}
         </button>
 
-        <div>
-          <h4 className="text-xs font-bold text-[#2B1B3D] dark:text-white">{t.title}</h4>
-          <div className="flex items-center space-x-2 mt-0.5 text-[10px] text-gray-500 dark:text-gray-400 font-medium">
-            <span className={`px-2 py-0.5 rounded font-extrabold ${
+        <div className="min-w-0">
+          <h4 className="text-xs font-bold text-[#2B1B3D] dark:text-white truncate">{t.title}</h4>
+          <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[10px] text-gray-500 dark:text-gray-400 font-medium">
+            <span className={`px-2 py-0.5 rounded font-extrabold shrink-0 ${
               t.task_type === 'CURRICULAR' ? 'bg-[#CDB4DB]/40 text-purple-900 dark:text-purple-300' :
               t.task_type === 'EXTRACURRICULAR' ? 'bg-[#BDE0FE]/50 text-blue-900 dark:text-blue-300' :
               'bg-[#FFC8DD]/50 text-pink-900 dark:text-pink-300'
@@ -83,7 +83,7 @@ export default function UpcomingTasks({ onEditTask }) {
         </div>
       </div>
 
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2.5 self-end sm:self-center shrink-0">
         <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase ${
           t.priority === 'HIGH' ? 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300' :
           t.priority === 'MEDIUM' ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300' :
@@ -104,9 +104,9 @@ export default function UpcomingTasks({ onEditTask }) {
   return (
     <div className="space-y-8 animate-slide-up">
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#1E142D] p-6 rounded-3xl border border-gray-200 dark:border-[#332352] shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#1E142D] p-4 sm:p-6 rounded-3xl border border-gray-200 dark:border-[#332352] shadow-sm">
         <div>
-          <h1 className="text-2xl font-black text-[#2B1B3D] dark:text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-[#2B1B3D] dark:text-white tracking-tight">
             Upcoming Tasks & Deadlines
           </h1>
           <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">
@@ -114,7 +114,7 @@ export default function UpcomingTasks({ onEditTask }) {
           </p>
         </div>
 
-        <div className="flex items-center space-x-2 bg-gray-100 dark:bg-[#120B1D] p-1.5 rounded-2xl">
+        <div className="flex flex-wrap items-center gap-2 bg-gray-100 dark:bg-[#120B1D] p-1.5 rounded-2xl self-start md:self-auto">
           <ArrowUpDown className="w-4 h-4 text-gray-400 ml-2" />
           <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Sort by:</span>
           <button

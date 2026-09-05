@@ -1,8 +1,8 @@
 import React from 'react';
-import { LayoutDashboard, CheckSquare, GraduationCap, Compass, Users, Calendar, AlertCircle, User, Settings, Archive } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, GraduationCap, Compass, Users, Calendar, AlertCircle, User, Settings, Archive, X } from 'lucide-react';
 import { useTasks } from '../context/TaskContext';
 
-export default function Sidebar({ activeTab, setActiveTab }) {
+export default function Sidebar({ activeTab, setActiveTab, mobileOpen, onCloseMobileMenu }) {
   const { stats } = useTasks();
 
   const navItems = [
@@ -32,8 +32,15 @@ export default function Sidebar({ activeTab, setActiveTab }) {
     }
   ];
 
-  return (
-    <aside className="w-64 bg-white dark:bg-[#1E142D] border-r border-gray-200 dark:border-[#332352] min-h-[calc(100vh-4rem)] p-4 flex flex-col justify-between shrink-0 transition-colors duration-300">
+  const handleSelectTab = (id) => {
+    setActiveTab(id);
+    if (onCloseMobileMenu) {
+      onCloseMobileMenu();
+    }
+  };
+
+  const renderNavContent = () => (
+    <>
       <nav className="space-y-6">
         {navItems.map((item) => {
           if (item.isGroup) {
@@ -48,7 +55,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                   return (
                     <button
                       key={child.id}
-                      onClick={() => setActiveTab(child.id)}
+                      onClick={() => handleSelectTab(child.id)}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-extrabold text-xs transition transform hover:translate-x-1 ${
                         isActive
                           ? 'bg-[#FFC8DD] text-[#2B1B3D] shadow-md'
@@ -79,7 +86,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
           return (
             <div key={item.id}>
               <button
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => handleSelectTab(item.id)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-extrabold text-xs transition transform hover:translate-x-1 ${
                   isActive
                     ? 'bg-[#FFC8DD] text-[#2B1B3D] shadow-md'
@@ -105,6 +112,49 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         <h4 className="text-xs font-black text-[#2B1B3D] dark:text-[#FFC8DD]">EduFlow PWA v1.2</h4>
         <p className="text-[10px] text-gray-600 dark:text-gray-300 mt-1 font-medium">Offline App & Dark Mode Ready</p>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-64 bg-white dark:bg-[#1E142D] border-r border-gray-200 dark:border-[#332352] min-h-[calc(100vh-4rem)] p-4 flex-col justify-between shrink-0 transition-colors duration-300">
+        {renderNavContent()}
+      </aside>
+
+      {/* Mobile Drawer (Slide-over) */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden animate-fade-in">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-[#2B1B3D]/60 dark:bg-black/80 backdrop-blur-sm transition-opacity"
+            onClick={onCloseMobileMenu}
+          />
+
+          {/* Drawer Sheet */}
+          <aside className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-white dark:bg-[#1E142D] border-r border-gray-200 dark:border-[#332352] p-4 flex flex-col justify-between shadow-2xl overflow-y-auto transform transition duration-300 z-10 animate-slide-right">
+            <div>
+              {/* Mobile Drawer Header */}
+              <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-100 dark:border-[#332352]">
+                <div className="flex items-center space-x-2.5">
+                  <img src="/logo.png" alt="EduFlow Logo" className="w-8 h-8 object-contain drop-shadow" />
+                  <span className="font-black text-xl tracking-tight text-[#2B1B3D] dark:text-white">EduFlow</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={onCloseMobileMenu}
+                  className="p-1.5 text-gray-500 hover:text-[#2B1B3D] dark:text-gray-400 dark:hover:text-white rounded-xl transition"
+                  aria-label="Close navigation menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {renderNavContent()}
+            </div>
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

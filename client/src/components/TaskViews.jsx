@@ -149,9 +149,9 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
   return (
     <div className="space-y-6 animate-slide-up">
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#1E142D] p-6 rounded-3xl border border-gray-200 dark:border-[#332352] shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#1E142D] p-4 sm:p-6 rounded-3xl border border-gray-200 dark:border-[#332352] shadow-sm">
         <div>
-          <h1 className="text-2xl font-black text-[#2B1B3D] dark:text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-[#2B1B3D] dark:text-white tracking-tight">
             {categoryTitles[activeCategory] || 'Task Management'}
           </h1>
           <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">
@@ -160,7 +160,7 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
         </div>
 
         {isArchivedView ? (
-          <div className="flex items-center space-x-2 px-4 py-2 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 rounded-2xl text-xs font-bold">
+          <div className="flex items-center space-x-2 px-4 py-2 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 rounded-2xl text-xs font-bold self-start md:self-auto">
             <Archive className="w-4 h-4" />
             <span>Archived History</span>
           </div>
@@ -168,7 +168,7 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
           <button
             type="button"
             onClick={() => onOpenTaskModal && onOpenTaskModal(activeCategory === 'all' ? 'CURRICULAR' : activeCategory.toUpperCase())}
-            className="flex items-center justify-center space-x-2 px-5 py-2.5 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-2xl shadow transition transform active:scale-95"
+            className="flex items-center justify-center space-x-2 px-5 py-2.5 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-2xl shadow transition transform active:scale-95 self-start md:self-auto"
           >
             <Plus className="w-4 h-4" />
             <span>Add Task</span>
@@ -177,7 +177,7 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
       </div>
 
       {/* Filter & Search Controls */}
-      <div className="bg-white dark:bg-[#1E142D] p-4 rounded-2xl border border-gray-200 dark:border-[#332352] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#1E142D] p-4 rounded-2xl border border-gray-200 dark:border-[#332352] shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
         <div className="relative w-full md:w-72">
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
           <input
@@ -189,7 +189,7 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full md:w-auto">
           <div className="flex items-center space-x-1.5 text-xs font-bold text-gray-500 dark:text-gray-400">
             <Filter className="w-3.5 h-3.5" />
             <span>Priority:</span>
@@ -198,17 +198,17 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
             value={priorityFilter}
             onChange={setPriorityFilter}
             options={priorityFilterOptions}
-            className="w-36"
+            className="flex-1 sm:flex-initial sm:w-36"
           />
 
-          <div className="flex items-center space-x-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 pl-2 border-l border-gray-200 dark:border-[#332352]">
+          <div className="flex items-center space-x-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 sm:pl-2 sm:border-l border-gray-200 dark:border-[#332352]">
             <span>Status:</span>
           </div>
           <CustomSelect
             value={statusFilter}
             onChange={setStatusFilter}
             options={statusFilterOptions}
-            className="w-36"
+            className="flex-1 sm:flex-initial sm:w-36"
           />
         </div>
       </div>
@@ -285,9 +285,9 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
             return (
               <div
                 key={t.id}
-                className="bg-white dark:bg-[#1E142D] p-5 rounded-2xl border border-gray-200 dark:border-[#332352] hover:border-[#CDB4DB] dark:hover:border-[#FFC8DD] shadow-sm transition flex flex-col md:flex-row md:items-center justify-between gap-4 hover:-translate-y-0.5"
+                className="bg-white dark:bg-[#1E142D] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-[#332352] hover:border-[#CDB4DB] dark:hover:border-[#FFC8DD] shadow-sm transition flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 hover:-translate-y-0.5"
               >
-                <div className="space-y-1.5 flex-1">
+                <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     {getCategoryBadge(t.task_type)}
                     {getPriorityBadge(t.priority)}
@@ -303,18 +303,18 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
                     </span>
                   </div>
 
-                  <h3 className={`text-base font-bold text-[#2B1B3D] dark:text-white ${t.status === 'COMPLETED' ? 'line-through text-gray-400 dark:text-gray-500' : ''}`}>
+                  <h3 className={`text-base font-bold text-[#2B1B3D] dark:text-white break-words ${t.status === 'COMPLETED' ? 'line-through text-gray-400 dark:text-gray-500' : ''}`}>
                     {t.title}
                   </h3>
 
                   {t.description && (
-                    <p className="text-xs text-gray-600 dark:text-gray-300 font-medium line-clamp-2">
+                    <p className="text-xs text-gray-600 dark:text-gray-300 font-medium line-clamp-2 break-words">
                       {t.description}
                     </p>
                   )}
 
                   {t.task_type === 'ORG' && (
-                    <div className="flex items-center space-x-3 text-[11px] font-bold text-[#2B1B3D] dark:text-[#BDE0FE] pt-1">
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold text-[#2B1B3D] dark:text-[#BDE0FE] pt-1">
                       <span className="flex items-center space-x-1">
                         <Building className="w-3.5 h-3.5" />
                         <span>{t.organization_name || 'Organization'}</span>
@@ -329,7 +329,7 @@ export default function TaskViews({ activeCategory = 'all', onOpenTaskModal, onE
                   )}
                 </div>
 
-                <div className="flex items-center space-x-3 border-t md:border-t-0 pt-3 md:pt-0 border-gray-100 dark:border-[#332352]">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 border-t md:border-t-0 pt-3 md:pt-0 border-gray-100 dark:border-[#332352]">
                   {getStatusButton(t)}
 
                   {/* Archive button for completed unarchived tasks */}

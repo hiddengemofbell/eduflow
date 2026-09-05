@@ -1,9 +1,9 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { Sun, Moon, Plus, LogOut, Download } from 'lucide-react';
+import { Sun, Moon, Plus, LogOut, Download, Menu } from 'lucide-react';
 
-export default function Navbar({ onOpenTaskModal }) {
+export default function Navbar({ onOpenTaskModal, onToggleMobileMenu }) {
   const { isDark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const [deferredPrompt, setDeferredPrompt] = React.useState(null);
@@ -31,29 +31,41 @@ export default function Navbar({ onOpenTaskModal }) {
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 dark:bg-[#1E142D]/90 backdrop-blur-md border-b border-gray-200 dark:border-[#332352] transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo & Name */}
-        <div
-          className="flex items-center space-x-3 cursor-pointer group"
-          onClick={() => window.location.reload()}
-        >
-          <img
-            src="/logo.png"
-            alt="EduFlow Logo"
-            className="w-10 h-10 object-contain transition-transform duration-300 group-hover:scale-110 drop-shadow"
-          />
-          <div className="flex items-center space-x-2">
-            <span className="font-black text-2xl tracking-tight text-[#2B1B3D] dark:text-white">
-              EduFlow
-            </span>
-            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#FFC8DD] text-[#2B1B3D] dark:bg-[#382550] dark:text-[#FFC8DD] uppercase tracking-wider">
-              {user?.account_type === 'ORG_ADMIN' ? 'ORG ADMIN' : 'STUDENT'}
-            </span>
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Mobile Drawer Hamburger Button */}
+          <button
+            type="button"
+            onClick={onToggleMobileMenu}
+            className="lg:hidden p-2 -ml-1 text-[#2B1B3D] dark:text-[#FFAFCC] hover:bg-gray-100 dark:hover:bg-[#332352] rounded-xl transition"
+            aria-label="Open navigation menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          <div
+            className="flex items-center space-x-2 sm:space-x-3 cursor-pointer group"
+            onClick={() => window.location.reload()}
+          >
+            <img
+              src="/logo.png"
+              alt="EduFlow Logo"
+              className="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform duration-300 group-hover:scale-110 drop-shadow"
+            />
+            <div className="flex items-center space-x-2">
+              <span className="font-black text-xl sm:text-2xl tracking-tight text-[#2B1B3D] dark:text-white">
+                EduFlow
+              </span>
+              <span className="hidden sm:inline-flex text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#FFC8DD] text-[#2B1B3D] dark:bg-[#382550] dark:text-[#FFC8DD] uppercase tracking-wider">
+                {user?.account_type === 'ORG_ADMIN' ? 'ORG ADMIN' : 'STUDENT'}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-1.5 sm:space-x-3">
           {/* PWA Install Button */}
           {deferredPrompt && (
             <button
@@ -90,7 +102,7 @@ export default function Navbar({ onOpenTaskModal }) {
           <button
             type="button"
             onClick={() => onOpenTaskModal && onOpenTaskModal('CURRICULAR')}
-            className="flex items-center space-x-1.5 px-4 py-2 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-xl shadow transition transform active:scale-95"
+            className="flex items-center space-x-1.5 px-3 sm:px-4 py-2 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-xl shadow transition transform active:scale-95"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">New Task</span>
@@ -98,7 +110,7 @@ export default function Navbar({ onOpenTaskModal }) {
 
           {/* User Info & Logout */}
           {user && (
-            <div className="flex items-center space-x-2 border-l border-gray-200 dark:border-[#332352] pl-3">
+            <div className="flex items-center space-x-1.5 sm:space-x-2 border-l border-gray-200 dark:border-[#332352] pl-2 sm:pl-3">
               <div className="w-8 h-8 rounded-full bg-[#2B1B3D] dark:bg-[#FFC8DD] text-white dark:text-[#2B1B3D] flex items-center justify-center font-bold text-xs">
                 {user.name ? user.name.charAt(0).toUpperCase() : 'S'}
               </div>

@@ -9,30 +9,32 @@ export default function LandingPage({ onOpenLogin, onOpenRegister }) {
     <div className="min-h-screen bg-white dark:bg-[#120B1D] text-[#2B1B3D] dark:text-gray-100 font-sans flex flex-col transition-colors duration-300">
       {/* Header / Navbar */}
       <header className="border-b border-gray-100 dark:border-[#332352] bg-white/80 dark:bg-[#1E142D]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <img src="/logo.png" alt="EduFlow Logo" className="w-10 h-10 object-contain drop-shadow" />
-            <span className="font-black text-2xl tracking-tight text-[#2B1B3D] dark:text-white">EduFlow</span>
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <img src="/logo.png" alt="EduFlow Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow" />
+            <span className="font-black text-xl sm:text-2xl tracking-tight text-[#2B1B3D] dark:text-white">EduFlow</span>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-1.5 sm:space-x-3">
             <button
               onClick={toggleTheme}
-              className="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-[#332352] text-xs font-bold text-[#2B1B3D] dark:text-[#FFAFCC] hover:bg-gray-50 dark:hover:bg-[#332352] transition"
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl border border-gray-200 dark:border-[#332352] text-xs font-bold text-[#2B1B3D] dark:text-[#FFAFCC] hover:bg-gray-50 dark:hover:bg-[#332352] transition"
+              aria-label="Toggle theme"
             >
-              {isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}
+              <span className="hidden sm:inline">{isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}</span>
+              <span className="sm:hidden">{isDark ? '☀️' : '🌙'}</span>
             </button>
 
             <button
               onClick={onOpenLogin}
-              className="px-4 py-2 text-xs font-bold text-[#2B1B3D] dark:text-white hover:bg-gray-100 dark:hover:bg-[#332352] rounded-xl transition"
+              className="px-2.5 sm:px-4 py-2 text-xs font-bold text-[#2B1B3D] dark:text-white hover:bg-gray-100 dark:hover:bg-[#332352] rounded-xl transition"
             >
               Log In
             </button>
 
             <button
               onClick={onOpenRegister}
-              className="px-5 py-2 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-xl shadow transition transform hover:scale-105"
+              className="px-3.5 sm:px-5 py-2 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-xl shadow transition transform hover:scale-105"
             >
               Get Started
             </button>

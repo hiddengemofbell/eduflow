@@ -123,41 +123,43 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1B3D]/70 dark:bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-      <div className="bg-white dark:bg-[#1E142D] w-full max-w-lg rounded-3xl shadow-2xl border border-gray-200 dark:border-[#332352] overflow-visible transform animate-scale-in transition-colors duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1B3D]/70 dark:bg-black/80 backdrop-blur-md p-3 sm:p-4 animate-fade-in">
+      <div className="bg-white dark:bg-[#1E142D] w-full max-w-lg max-h-[92vh] flex flex-col rounded-3xl shadow-2xl border border-gray-200 dark:border-[#332352] overflow-hidden transform animate-scale-in transition-colors duration-300">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#CDB4DB]/40 via-[#FFC8DD]/40 to-[#BDE0FE]/40 dark:from-[#2B1B3D] dark:to-[#382550] p-6 relative flex items-center justify-between border-b border-gray-100 dark:border-[#332352] rounded-t-3xl">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#2B1B3D] dark:bg-[#FFC8DD] text-white dark:text-[#2B1B3D] flex items-center justify-center shadow font-bold">
+        <div className="bg-gradient-to-r from-[#CDB4DB]/40 via-[#FFC8DD]/40 to-[#BDE0FE]/40 dark:from-[#2B1B3D] dark:to-[#382550] p-4 sm:p-6 relative flex items-center justify-between border-b border-gray-100 dark:border-[#332352] shrink-0">
+          <div className="flex items-center space-x-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-[#2B1B3D] dark:bg-[#FFC8DD] text-white dark:text-[#2B1B3D] flex items-center justify-center shadow font-bold shrink-0">
               <Sparkles className="w-5 h-5 text-[#FFC8DD] dark:text-[#2B1B3D]" />
             </div>
-            <div>
-              <h2 className="text-xl font-black text-[#2B1B3D] dark:text-white">
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-black text-[#2B1B3D] dark:text-white truncate">
                 {taskToEdit ? 'Edit Task' : 'Create New Task'}
               </h2>
-              <p className="text-xs font-bold text-gray-600 dark:text-[#FFC8DD] mt-0.5">
+              <p className="text-[11px] sm:text-xs font-bold text-gray-600 dark:text-[#FFC8DD] mt-0.5 truncate">
                 Set details, visual calendar date, time, and priority.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[#2B1B3D] dark:text-gray-300 hover:bg-white/80 dark:hover:bg-[#332352] p-2 rounded-full transition transform hover:scale-105"
+            className="text-[#2B1B3D] dark:text-gray-300 hover:bg-white/80 dark:hover:bg-[#332352] p-2 rounded-full transition transform hover:scale-105 shrink-0"
+            aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[82vh] overflow-y-auto rounded-b-3xl">
-          {error && (
-            <div className="p-3 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-xl">
-              {error}
-            </div>
-          )}
+        {/* Form Container */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1">
+            {error && (
+              <div className="p-3 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-xl">
+                {error}
+              </div>
+            )}
 
-          {/* Task Title */}
-          <div>
+            {/* Task Title */}
+            <div>
             <label className="block text-xs font-black uppercase tracking-wider text-[#2B1B3D] dark:text-gray-300 mb-1.5 flex items-center space-x-1.5">
               <FileText className="w-3.5 h-3.5 text-[#2B1B3D] dark:text-[#FFAFCC]" />
               <span>Task Title</span>
@@ -290,26 +292,27 @@ export default function TaskModal({ isOpen, onClose, taskToEdit = null, defaultC
               />
             </div>
           )}
+        </div>
 
-          {/* Footer Buttons */}
-          <div className="pt-4 flex justify-end space-x-3 border-t border-gray-100 dark:border-[#332352]">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 font-bold text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#332352] rounded-2xl transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2.5 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-2xl shadow-md transition transform hover:scale-[1.02] active:scale-95"
-            >
-              {loading ? 'Saving...' : taskToEdit ? 'Update Task' : 'Create Task'}
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* Pinned Footer Buttons */}
+        <div className="p-4 sm:px-6 py-3.5 flex justify-end space-x-3 border-t border-gray-100 dark:border-[#332352] shrink-0 bg-white/95 dark:bg-[#1E142D]/95">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 sm:px-5 py-2 sm:py-2.5 font-bold text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#332352] rounded-2xl transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-5 sm:px-6 py-2 sm:py-2.5 bg-[#FFC8DD] hover:bg-[#FFAFCC] text-[#2B1B3D] font-extrabold text-xs rounded-2xl shadow-md transition transform hover:scale-[1.02] active:scale-95"
+          >
+            {loading ? 'Saving...' : taskToEdit ? 'Update Task' : 'Create Task'}
+          </button>
+        </div>
+      </form>
+    </div>
     </div>
   );
 }

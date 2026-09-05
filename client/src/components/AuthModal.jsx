@@ -106,20 +106,21 @@ export default function AuthModal({ isOpen, onClose, onRegistered, initialMode =
       : 'We will email you a secure password reset link';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1B3D]/70 dark:bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-      <div className="bg-white dark:bg-[#1E142D] w-full max-w-md rounded-3xl shadow-2xl border border-gray-200 dark:border-[#332352] overflow-hidden transform animate-scale-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1B3D]/70 dark:bg-black/80 backdrop-blur-md p-3 sm:p-4 animate-fade-in">
+      <div className="bg-white dark:bg-[#1E142D] w-full max-w-md max-h-[92vh] flex flex-col rounded-3xl shadow-2xl border border-gray-200 dark:border-[#332352] overflow-hidden transform animate-scale-in">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#CDB4DB]/40 via-[#FFC8DD]/40 to-[#BDE0FE]/40 dark:from-[#2B1B3D] dark:to-[#382550] p-6 relative text-center border-b border-gray-100 dark:border-[#332352]">
+        <div className="bg-gradient-to-r from-[#CDB4DB]/40 via-[#FFC8DD]/40 to-[#BDE0FE]/40 dark:from-[#2B1B3D] dark:to-[#382550] p-4 sm:p-6 relative text-center border-b border-gray-100 dark:border-[#332352] shrink-0">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-[#2B1B3D] dark:text-gray-300 hover:bg-white/60 dark:hover:bg-[#332352] p-1.5 rounded-full transition"
+            aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
           </button>
 
-          <img src="/logo.png" alt="EduFlow Logo" className="w-14 h-14 object-contain mx-auto mb-2 drop-shadow" />
+          <img src="/logo.png" alt="EduFlow Logo" className="w-12 h-12 sm:w-14 sm:h-14 object-contain mx-auto mb-2 drop-shadow" />
 
-          <h2 className="text-2xl font-black text-[#2B1B3D] dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-black text-[#2B1B3D] dark:text-white">
             {title}
           </h2>
           <p className="text-xs font-bold text-gray-600 dark:text-[#FFC8DD] mt-1">
@@ -148,7 +149,7 @@ export default function AuthModal({ isOpen, onClose, onRegistered, initialMode =
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
           {confirmationEmail && (
             <div className="space-y-4 text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-700">

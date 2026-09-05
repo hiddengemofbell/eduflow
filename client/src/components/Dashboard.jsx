@@ -110,7 +110,7 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
       {(overdueTasks.length > 0 || dueTodayTasks.length > 0) && (
         <div className="space-y-3">
           {overdueTasks.length > 0 && (
-            <div className="bg-red-50 dark:bg-red-950/40 border-l-4 border-red-500 p-4 rounded-2xl flex items-center justify-between shadow-sm border dark:border-red-900/50">
+            <div className="bg-red-50 dark:bg-red-950/40 border-l-4 border-red-500 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm border dark:border-red-900/50">
               <div className="flex items-center space-x-3">
                 <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
                 <div>
@@ -124,7 +124,7 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
               </div>
               <button
                 onClick={() => setActiveTab('upcoming')}
-                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition transform hover:scale-105"
+                className="self-start sm:self-auto px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition transform hover:scale-105 shrink-0"
               >
                 View Overdue
               </button>
@@ -132,7 +132,7 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
           )}
 
           {dueTodayTasks.length > 0 && (
-            <div className="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 p-4 rounded-2xl flex items-center justify-between shadow-sm border dark:border-amber-900/50">
+            <div className="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm border dark:border-amber-900/50">
               <div className="flex items-center space-x-3">
                 <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
                 <div>
@@ -146,7 +146,7 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
               </div>
               <button
                 onClick={() => setActiveTab('upcoming')}
-                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow transition transform hover:scale-105"
+                className="self-start sm:self-auto px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow transition transform hover:scale-105 shrink-0"
               >
                 View Today
               </button>
@@ -156,49 +156,49 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
       )}
 
       {/* Task Summary Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-[#1E142D] p-5 rounded-2xl border border-gray-200 dark:border-[#332352] shadow-sm flex items-center justify-between transition hover:-translate-y-1">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white dark:bg-[#1E142D] p-3.5 sm:p-5 rounded-2xl border border-gray-200 dark:border-[#332352] shadow-sm flex items-center justify-between transition hover:-translate-y-1">
           <div>
-            <div className="text-xs font-extrabold text-gray-400 dark:text-gray-400 uppercase tracking-wider">Total Tasks</div>
-            <div className="text-3xl font-black text-[#2B1B3D] dark:text-white mt-1">{stats.total}</div>
+            <div className="text-[11px] sm:text-xs font-extrabold text-gray-400 dark:text-gray-400 uppercase tracking-wider">Total Tasks</div>
+            <div className="text-2xl sm:text-3xl font-black text-[#2B1B3D] dark:text-white mt-1">{stats.total}</div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-[#CDB4DB]/40 dark:bg-[#332352] flex items-center justify-center text-[#2B1B3D] dark:text-[#FFAFCC] font-bold">
-            <Layers className="w-6 h-6" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#CDB4DB]/40 dark:bg-[#332352] flex items-center justify-center text-[#2B1B3D] dark:text-[#FFAFCC] font-bold shrink-0">
+            <Layers className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#1E142D] p-5 rounded-2xl border border-gray-200 dark:border-[#332352] shadow-sm flex items-center justify-between transition hover:-translate-y-1">
+        <div className="bg-white dark:bg-[#1E142D] p-3.5 sm:p-5 rounded-2xl border border-gray-200 dark:border-[#332352] shadow-sm flex items-center justify-between transition hover:-translate-y-1">
           <div>
-            <div className="text-xs font-extrabold text-gray-400 dark:text-gray-400 uppercase tracking-wider">Pending</div>
-            <div className="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">{stats.pending}</div>
+            <div className="text-[11px] sm:text-xs font-extrabold text-gray-400 dark:text-gray-400 uppercase tracking-wider">Pending</div>
+            <div className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">{stats.pending}</div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold">
-            <Clock className="w-6 h-6" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold shrink-0">
+            <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#1E142D] p-5 rounded-2xl border border-gray-200 dark:border-[#332352] shadow-sm flex items-center justify-between transition hover:-translate-y-1">
+        <div className="bg-white dark:bg-[#1E142D] p-3.5 sm:p-5 rounded-2xl border border-gray-200 dark:border-[#332352] shadow-sm flex items-center justify-between transition hover:-translate-y-1">
           <div>
-            <div className="text-xs font-extrabold text-gray-400 dark:text-gray-400 uppercase tracking-wider">In Progress</div>
-            <div className="text-3xl font-black text-blue-600 dark:text-blue-400 mt-1">{stats.inProgress}</div>
+            <div className="text-[11px] sm:text-xs font-extrabold text-gray-400 dark:text-gray-400 uppercase tracking-wider">In Progress</div>
+            <div className="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400 mt-1">{stats.inProgress}</div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-[#BDE0FE]/40 dark:bg-blue-950/40 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
-            <RefreshCw className="w-6 h-6" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#BDE0FE]/40 dark:bg-blue-950/40 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shrink-0">
+            <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#1E142D] p-5 rounded-2xl border border-gray-200 dark:border-[#332352] shadow-sm flex items-center justify-between transition hover:-translate-y-1">
+        <div className="bg-white dark:bg-[#1E142D] p-3.5 sm:p-5 rounded-2xl border border-gray-200 dark:border-[#332352] shadow-sm flex items-center justify-between transition hover:-translate-y-1">
           <div>
-            <div className="text-xs font-extrabold text-gray-400 dark:text-gray-400 uppercase tracking-wider">Completed</div>
-            <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{stats.completed}</div>
+            <div className="text-[11px] sm:text-xs font-extrabold text-gray-400 dark:text-gray-400 uppercase tracking-wider">Completed</div>
+            <div className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{stats.completed}</div>
             {stats.archived > 0 && (
               <span className="text-[10px] font-bold text-purple-600 dark:text-purple-300 block mt-0.5">
                 +{stats.archived} archived
               </span>
             )}
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold">
-            <CheckCircle2 className="w-6 h-6" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
+            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
       </div>
@@ -206,7 +206,7 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Quick Task Add Widget */}
-        <div className="bg-white dark:bg-[#1E142D] p-6 rounded-3xl border border-gray-200 dark:border-[#332352] shadow-sm space-y-4">
+        <div className="bg-white dark:bg-[#1E142D] p-4 sm:p-6 rounded-3xl border border-gray-200 dark:border-[#332352] shadow-sm space-y-4">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-xl bg-[#2B1B3D] dark:bg-[#FFC8DD] text-white dark:text-[#2B1B3D] flex items-center justify-center font-bold">
               <Plus className="w-4 h-4" />
@@ -227,7 +227,7 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
                 <label className="block text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Category</label>
                 <CustomSelect
@@ -257,7 +257,7 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
         </div>
 
         {/* Week's Upcoming Tasks List */}
-        <div className="lg:col-span-2 bg-white dark:bg-[#1E142D] p-6 rounded-3xl border border-gray-200 dark:border-[#332352] shadow-sm space-y-4">
+        <div className="lg:col-span-2 bg-white dark:bg-[#1E142D] p-4 sm:p-6 rounded-3xl border border-gray-200 dark:border-[#332352] shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <CalendarIcon className="w-5 h-5 text-[#2B1B3D] dark:text-[#FFAFCC]" />
@@ -283,9 +283,9 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
               {activeTasks.slice(0, 6).map((t) => (
                 <div
                   key={t.id}
-                  className="p-3.5 rounded-2xl border border-gray-100 dark:border-[#332352] bg-gray-50/50 dark:bg-[#160F24] hover:bg-white dark:hover:bg-[#1E142D] transition flex items-center justify-between"
+                  className="p-3 sm:p-3.5 rounded-2xl border border-gray-100 dark:border-[#332352] bg-gray-50/50 dark:bg-[#160F24] hover:bg-white dark:hover:bg-[#1E142D] transition flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
                 >
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
                     <button
                       type="button"
                       onClick={(e) => {
@@ -297,7 +297,7 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
                         }
                         updateTask(t.id, payload).catch((error) => window.alert(error.message));
                       }}
-                      className={`w-5 h-5 rounded-lg border flex items-center justify-center transition ${
+                      className={`w-5 h-5 rounded-lg border flex items-center justify-center transition shrink-0 ${
                         t.status === 'COMPLETED'
                           ? 'bg-emerald-500 border-emerald-500 text-white'
                           : 'border-gray-300 dark:border-gray-600 hover:border-[#2B1B3D] bg-white dark:bg-[#120B1D]'
@@ -306,24 +306,24 @@ export default function Dashboard({ onOpenTaskModal, setActiveTab }) {
                       {t.status === 'COMPLETED' && <CheckCircle2 className="w-3.5 h-3.5" />}
                     </button>
 
-                    <div>
-                      <div className={`text-xs font-bold text-[#2B1B3D] dark:text-white ${t.status === 'COMPLETED' ? 'line-through text-gray-400 dark:text-gray-500' : ''}`}>
+                    <div className="min-w-0">
+                      <div className={`text-xs font-bold text-[#2B1B3D] dark:text-white truncate ${t.status === 'COMPLETED' ? 'line-through text-gray-400 dark:text-gray-500' : ''}`}>
                         {t.title}
                       </div>
                       <div className="flex items-center space-x-2 mt-0.5 text-[10px] text-gray-500 dark:text-gray-400">
-                        <span className={`px-2 py-0.5 rounded font-extrabold ${
+                        <span className={`px-2 py-0.5 rounded font-extrabold shrink-0 ${
                           t.task_type === 'CURRICULAR' ? 'bg-[#CDB4DB]/40 dark:bg-purple-950/80 text-purple-900 dark:text-purple-300' :
                           t.task_type === 'EXTRACURRICULAR' ? 'bg-[#BDE0FE]/50 dark:bg-blue-950/80 text-blue-900 dark:text-blue-300' :
                           'bg-[#FFC8DD]/50 dark:bg-pink-950/80 text-pink-900 dark:text-pink-300'
                         }`}>
                           {t.task_type}
                         </span>
-                        <span>Due: {t.due_date ? String(t.due_date).split('T')[0] : ''}</span>
+                        <span className="truncate">Due: {t.due_date ? String(t.due_date).split('T')[0] : ''}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 self-end sm:self-center shrink-0">
                     {t.status === 'COMPLETED' && !t.is_archived && (
                       <button
                         type="button"

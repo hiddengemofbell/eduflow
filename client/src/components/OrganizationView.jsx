@@ -149,14 +149,14 @@ export default function OrganizationView({ onOpenTaskModal }) {
   return (
     <div className="space-y-8 animate-slide-up">
       {/* Org Header Card */}
-      <div className="bg-gradient-to-r from-edu-card via-edu-accent/40 to-edu-sec dark:from-edu-darkCard dark:via-edu-darkBorder dark:to-edu-darkBg p-8 rounded-3xl border border-edu-card/60 dark:border-edu-darkBorder shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center space-x-4">
-          <div className="w-14 h-14 rounded-2xl bg-edu-dark dark:bg-edu-accent text-white dark:text-edu-dark flex items-center justify-center shadow-lg">
-            <Building className="w-7 h-7 text-edu-accent dark:text-edu-dark" />
+      <div className="bg-gradient-to-r from-edu-card via-edu-accent/40 to-edu-sec dark:from-edu-darkCard dark:via-edu-darkBorder dark:to-edu-darkBg p-5 sm:p-8 rounded-3xl border border-edu-card/60 dark:border-edu-darkBorder shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center space-x-4 min-w-0">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-edu-dark dark:bg-edu-accent text-white dark:text-edu-dark flex items-center justify-center shadow-lg shrink-0">
+            <Building className="w-6 h-6 sm:w-7 sm:h-7 text-edu-accent dark:text-edu-dark" />
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="text-2xl font-black text-edu-dark dark:text-white">{user.organization?.name}</h1>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-black text-edu-dark dark:text-white truncate">{user.organization?.name}</h1>
               <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-edu-dark dark:bg-edu-accent text-white dark:text-edu-dark">
                 {user.account_type === 'ORG_ADMIN' ? 'Admin View' : 'Member View'}
               </span>
@@ -167,7 +167,7 @@ export default function OrganizationView({ onOpenTaskModal }) {
           </div>
         </div>
 
-        <div className="bg-white/90 dark:bg-edu-darkCard/90 backdrop-blur p-4 rounded-2xl border border-white/60 dark:border-edu-darkBorder shadow-sm flex items-center space-x-4">
+        <div className="bg-white/90 dark:bg-edu-darkCard/90 backdrop-blur p-4 rounded-2xl border border-white/60 dark:border-edu-darkBorder shadow-sm flex items-center justify-between sm:justify-start space-x-4 shrink-0">
           <div>
             <span className="block text-[10px] font-extrabold uppercase text-gray-400">Organization Join Code</span>
             <span className="text-xl font-black font-mono tracking-wider text-edu-dark dark:text-edu-accent">
@@ -185,7 +185,7 @@ export default function OrganizationView({ onOpenTaskModal }) {
       </div>
 
       {user.account_type === 'ORG_ADMIN' && (
-        <div className="bg-white dark:bg-edu-darkCard p-5 rounded-2xl border border-gray-200 dark:border-edu-darkBorder shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-edu-darkCard p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-edu-darkBorder shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold text-edu-dark dark:text-white">Assign Task to Member</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
@@ -195,7 +195,7 @@ export default function OrganizationView({ onOpenTaskModal }) {
           <button
             type="button"
             onClick={() => onOpenTaskModal && onOpenTaskModal('ORG')}
-            className="px-4 py-2 bg-edu-dark dark:bg-edu-accent text-white dark:text-edu-dark font-bold text-xs rounded-xl shadow hover:bg-opacity-90 transition flex items-center space-x-1.5"
+            className="self-start sm:self-auto px-4 py-2 bg-edu-dark dark:bg-edu-accent text-white dark:text-edu-dark font-bold text-xs rounded-xl shadow hover:bg-opacity-90 transition flex items-center space-x-1.5 shrink-0"
           >
             <Plus className="w-4 h-4 text-edu-accent dark:text-edu-dark" />
             <span>Assign Org Task</span>

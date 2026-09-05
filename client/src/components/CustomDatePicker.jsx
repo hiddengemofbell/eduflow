@@ -91,7 +91,7 @@ export default function CustomDatePicker({ value, onChange, className = '' }) {
 
       {/* Visual Interactive Calendar Popup - Perfectly Sized to fit Modal Padding */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-1.5 z-50 bg-white dark:bg-[#1E142D] border border-gray-200 dark:border-[#3E285C] rounded-3xl shadow-2xl overflow-hidden animate-scale-in p-3.5 w-[255px]">
+        <div className="absolute left-0 top-full mt-1.5 z-50 bg-white dark:bg-[#1E142D] border border-gray-200 dark:border-[#3E285C] rounded-3xl shadow-2xl overflow-hidden animate-scale-in p-3.5 w-[255px] max-w-[calc(100vw-2rem)]">
           {/* Header Navigation */}
           <div className="flex items-center justify-between pb-2.5 border-b border-gray-100 dark:border-[#332352]">
             <button
